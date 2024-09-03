@@ -1,0 +1,688 @@
+VLANs MATRIZ
+S1-MATRIZ
+enable
+config t
+
+hostname S1
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name SECRETARIA
+vlan 30
+ name TI
+ exit
+
+int range fa0/6 -10
+ switchport mode access
+ switchport access vlan 10
+int range fa0/11 -19
+ switchport mode access
+ switchport access vlan 20
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 30
+
+int range fa0/1 -3
+ switchport mode trunk
+ switchport trunk native vlan 99
+ do wr
+---------------------------------------
+S2-MATRIZ
+enable
+config t
+
+hostname S2
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name SECRETARIA
+vlan 30
+ name TI
+ exit
+
+int range fa0/6 -10
+ switchport mode access
+ switchport access vlan 10
+int range fa0/11 -19
+ switchport mode access
+ switchport access vlan 20
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 30
+
+int range fa0/1 -3
+ switchport mode trunk
+ switchport trunk native vlan 99
+ do wr
+---------------------------------------
+S3-MATRIZ
+enable
+config t
+
+hostname S3
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name SECRETARIA
+vlan 30
+ name TI
+ exit
+
+int range fa0/6 -10
+ switchport mode access
+ switchport access vlan 10
+int range fa0/11 -19
+ switchport mode access
+ switchport access vlan 20
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 30
+
+int range fa0/1 -3
+ switchport mode trunk
+ switchport trunk native vlan 99
+ do wr
+---------------------------------------------
+S4-MATRIZ
+enable
+config t
+
+hostname S4
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name SECRETARIA
+vlan 30
+ name TI
+ exit
+
+int range fa0/1 -3, g0/1
+ switchport mode trunk
+ switchport trunk native vlan 99
+do wr
+
+--------------SUCURSAL 1------------------
+S5-SUCURSAL1
+enable
+config t
+
+hostname S5
+
+vlan 50
+ name MARKETING
+vlan 70
+ name GESTION-HUMANA
+exit
+
+int range fa0/6 -10
+ switchport mode access
+ switchport access vlan 50
+int range fa0/16 -20
+ switchport mode access
+ switchport access vlan 70
+
+int range fa0/1 -2
+ switchport mode trunk
+ switchport trunk native vlan 999
+ do wr
+-----------------------------------------
+S6-SUCURSAL1
+enable
+config t
+
+hostname S6
+
+vlan 50
+ name MARKETING
+vlan 70
+ name GESTION-HUMANA
+exit
+
+int range fa0/6 -10
+ switchport mode access
+ switchport access vlan 50
+int range fa0/16 -20
+ switchport mode access
+ switchport access vlan 70
+
+int range fa0/1 -2
+ switchport mode trunk
+ switchport trunk native vlan 999
+ do wr
+---------------SUCURSAL2------------------
+S7-SUCURSAL2
+enable
+config t
+
+hostname S7
+
+vlan 200
+ name CREDITO
+vlan 100
+ name FINANCIERO
+exit
+
+int range fa0/16 -20
+ switchport mode access
+ switchport access vlan 200
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 100
+
+int range fa0/1 -2
+ switchport mode trunk
+ switchport trunk native vlan 77
+ do wr
+------------------------------------------
+S8-SUCURSAL2
+enable
+config t
+
+hostname S8
+
+vlan 200
+ name CREDITO
+vlan 100
+ name FINANCIERO
+exit
+
+int range fa0/16 -20
+ switchport mode access
+ switchport access vlan 200
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 100
+
+int range fa0/1 -2
+ switchport mode trunk
+ switchport trunk native vlan 77
+ do wr
+
+---------------CE-UIO--------------------
+UNDERLAY
+enable
+config t
+
+hostname CE-UIO
+
+int g0/0/1.10
+ encap dot1q 10
+ ip add 192.168.3.193 255.255.255.224
+int g0/0/1.20
+ encap dot1q 20
+ ip add 192.168.3.225 255.255.255.224
+int g0/0/1.30
+ encap dot1q 30
+ ip add 192.168.3.129 255.255.255.192
+int g0/0/1.99
+ encap dot1q 99 native
+int g0/0/1
+ no shut
+
+int s0/1/0
+ ip add 210.10.42.1 255.255.255.252
+int s0/2/0
+ ip add 210.10.42.25 255.255.255.252
+no shut
+
+router ospf 1
+ router-id 1.1.1.1
+ network 210.10.42.0 0.0.0.3 area 0
+ network 210.10.42.24 0.0.0.3 area 0
+do wr
+------------------------------OK-----------ok bien
+Configuracion MLS
+SUCURSAL 1
+CE-GYE
+enable
+config t
+hostname CE-GYE
+
+vlan 50
+ name MARKETING
+vlan 70
+ name GESTION-HUMANA
+exit
+
+int range fa0/1 -2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk 
+ switch trunk native vlan 999
+
+do wr
+-------------------------------------------
+SUCURSAL 2
+CE-CUENCA
+enable
+config t
+hostname CE-CUENCA
+
+vlan 200
+ name CREDITO
+vlan 100
+ name FINANCIERO
+exit
+
+int range fa0/1 -2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk 
+ switch trunk native vlan 77
+
+do wr
+-------------------------------------------
+ISP
+PE-1
+
+enable
+config t
+
+hostname PE-1
+
+int s0/1/0
+ ip add 210.10.42.2 255.255.255.252
+ clock rate 4000000
+int s0/2/0
+ ip add 210.10.42.26 255.255.255.252
+ clock rate 4000000
+ no shut
+
+int g0/0/0
+ ip add 210.10.42.5 255.255.255.252
+ no shut
+
+router ospf 2
+ router-id 2.2.2.2
+ network 210.10.42.0 0.0.0.3 area 0
+ network 210.10.42.24 0.0.0.3 area 0
+ network 210.10.42.4 0.0.0.3 area 0
+do wr
+
+----------------------------------------
+P1
+enable
+config t
+
+hostname P1
+
+int g0/0/0
+ ip add 210.10.42.6 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 210.10.42.9 255.255.255.252
+ no shut
+
+router ospf 3
+ router-id 3.3.3.3
+ network 210.10.42.4 0.0.0.3 area 0
+ network 210.10.42.8 0.0.0.3 area 0
+do wr
+----------------------------------------
+P2
+enable 
+config t
+hostname P2
+
+int g0/0/1
+ ip add 210.10.42.10 255.255.255.252
+ no shut
+
+int s0/1/0
+ ip add 210.10.42.13 255.255.255.252
+ no shut
+
+router ospf 4
+ router-id 4.4.4.4
+ network 210.10.42.8 0.0.0.3 area 0
+ network 210.10.42.12 0.0.0.3 area 0
+do wr
+
+----------------------------------------
+PE-2
+
+enable
+config t
+
+hostname PE-2
+
+int s0/1/0
+ ip add 210.10.42.14 255.255.255.252
+ clock rate 4000000
+ no shut
+
+int s0/2/0
+ ip add 210.10.42.21 255.255.255.252
+ clock rate 4000000
+ no shut
+
+int s0/1/1
+ ip add 210.10.42.17 255.255.255.252
+ clock rate 4000000
+ no shut
+
+router ospf 5
+ router-id 5.5.5.5
+ network 210.10.42.12 0.0.0.3 area 0
+ network 210.10.42.20 0.0.0.3 area 0
+ network 210.10.42.16 0.0.0.3 area 0
+do wr
+----------------------------------------
+---------------CE-GYE------------------
+enable
+config t
+hostname CE-GYE
+
+int g0/0/0.50
+ encap dot1q 50
+ ip add 192.168.3.1 255.255.255.128
+int g0/0/0.70
+ encap dot1q 70
+ ip add 192.168.2.1 255.255.255.0
+int g0/0/0.999
+ encap dot1q 999 native
+int g0/0/0
+ no shut
+
+int g0/0/1.50
+ encap dot1q 50
+ ip add 192.168.3.1 255.255.255.128
+int g0/0/1.70
+ encap dot1q 70
+ ip add 192.168.2.1 255.255.255.0
+int g0/0/1.999
+ encap dot1q 999 native
+int g0/0/1
+ no shut
+ do wr
+
+int s0/1/0
+ ip add 210.10.42.18 255.255.255.252
+ no shut
+
+router ospf 6
+ router-id 6.6.6.6
+ network 210.10.42.16 0.0.0.3 area 0
+do wr
+----------------------------------------ok- bien 
+CE-CUENCA
+enable
+config t
+hostname CE-CUENCA
+
+int g0/0/0.200
+ encap dot1q 200
+ ip add 192.168.4.1 255.255.255.240
+int g0/0/0.100
+ encap dot1q 100
+ ip add 192.168.4.17 255.255.255.248
+int g0/0/0.77
+ encap dot1q 77 native
+int g0/0/0
+ no shut
+
+int g0/0/1.200
+ encap dot1q 200
+ ip add 192.168.4.1 255.255.255.240
+int g0/0/1.100
+ encap dot1q 100
+ ip add 192.168.4.17 255.255.255.248
+int g0/0/1.77
+ encap dot1q 77 native
+int g0/0/1
+ no shut
+
+int s0/1/0
+ ip add 210.10.42.22 255.255.255.252
+ no shut
+
+router ospf 7
+ router-id 7.7.7.7
+ network 210.10.42.20 0.0.0.3 area 0
+do wr
+
+OVERLAY---------------------------------  OK
+OVERLAY
+CE-UIO - PEER1
+enable 
+config t
+
+int tunnel 1
+ ip add 192.168.4.33 255.255.255.252
+ tunnel source s0/1/0
+ tunnel destination 210.10.42.18
+
+int tunnel 2
+ ip add 192.168.4.37 255.255.255.252
+ tunnel source s0/2/0
+ tunnel destination 210.10.42.22
+
+do wr
+-------------------------------------- OK-bien 
+CE-SUCURSAL - PEER2
+CE-GYE - PEER2
+enable 
+config t
+
+int tunnel 1
+ ip add 192.168.4.34 255.255.255.252
+ tunnel source s0/1/0
+ tunnel destination 210.10.42.1
+do wr
+---------------------------------------
+OVERLAY -CE-CUEN - PEER3
+enable 
+config t
+
+int tunnel 2
+ ip add 192.68.10.38 255.255.255.252
+ tunnel source s0/1/0
+ tunnel destination 210.10.42.25
+do wr
+------------------------------------- OK
+Enrutamiento entre SEDES por la VPN
+CE-UIO
+enable
+config t
+
+ip route 192.168.3.0 255.255.255.128 192.168.4.34
+ip route 192.168.2.0 255.255.255.0 192.168.4.34
+
+ip route 192.168.4.0 255.255.255.240 192.68.4.38
+ip route 192.168.4.16 255.255.255.248 192.68.4.38
+
+ip dhcp excluded-address 192.168.3.193 192.168.3.197
+ip dhcp excluded-address 192.168.3.225 192.168.3.229
+ip dhcp excluded-address 192.168.3.129 192.168.3.133
+
+ip dhcp pool V10
+ network 192.168.3.192 255.255.255.224
+ default-router 192.168.3.193
+ dns-server 192.168.3.230
+ip dhcp pool V20
+ network 192.168.3.224 255.255.255.224
+ default-router 192.168.3.225
+ dns-server 192.168.3.230
+ip dhcp pool V30
+ network 192.168.3.128 255.255.255.192
+ default-router 192.168.3.129
+ dns-server 192.168.3.230
+exit
+do wr
+-----------------------OK------------------------------------
+CE-GYE
+enable 
+config t
+
+ip route 192.168.3.192 255.255.255.224 192.168.4.33
+ip route 192.168.3.224 255.255.255.224 192.168.4.33
+ip route 192.168.3.128 255.255.255.192 192.168.4.33
+
+ip route 192.168.4.0 255.255.255.240 192.168.4.33
+ip route 192.168.4.16 255.255.255.248 192.168.4.33
+
+ip dhcp excluded-address 192.168.3.1 192.168.3.5
+ip dhcp excluded-address 192.168.2.1 192.168.2.5
+
+ip dhcp pool V50
+ network 192.168.3.0 255.255.255.128
+ default-router 192.168.3.1
+ dns-server 192.168.3.230
+ip dhcp pool V70
+ network 192.168.2.0 255.255.255.0
+ default-router 192.168.2.1
+ dns-server 192.168.3.230
+exit
+
+do wr
+--------------------------------------------ok - bien
+CE-CUENCA
+enable 
+config t
+
+ip route 192.168.3.192 255.255.255.224 192.168.4.37
+ip route 192.168.3.224 255.255.255.224 192.168.4.37
+ip route 192.168.3.128 255.255.255.192 192.168.4.37
+
+ip route 192.168.3.0 255.255.255.128 192.168.4.37
+ip route 192.168.2.0 255.255.255.0 192.168.4.37
+
+
+ip dhcp excluded-address 192.168.4.1 192.168.4.5
+ip dhcp excluded-address 192.168.4.17 192.168.4.21
+
+ip dhcp pool V200
+ network 192.168.4.0 255.255.255.240
+ default-router 192.168.4.1
+ dns-server 192.168.3.230
+ip dhcp pool V250
+ network 192.168.4.16 255.255.255.248
+ default-router 192.168.4.17
+ dns-server 192.168.3.230
+exit
+
+do wr
+-------------------------------------------OK
+
+/IPsec configuracion por MAPEO/
+
+*CE-UIO
+-Lista de acceso para el tunnel 1-
+ip access-list extended GRE1_ACL
+ permit gre host 210.10.42.1 host 210.10.42.18
+exit
+-Lista de acceso para el tunnel 2-
+ip access-list extended GRE2_ACL
+ permit gre host 210.10.42.25 host 210.10.42.22
+exit
+
+-Config de ISKAMP (IKE phase 1)-
+crypto isakmp policy 1
+ encryption aes
+ hash sha
+ authentication pre-share
+ group 2
+ exit
+
+crypto isakmp key daya address 210.10.42.18
+crypto isakmp key daya address 210.10.42.22
+
+
+-Config DE IPsec (IKe phase 2)-
+crypto ipsec transform-set CE_UIO_TO_CE_GYE_SET esp-aes esp-sha-hmac
+crypto map CE_UIO_MAP1 1 ipsec-isakmp
+ set peer 210.10.42.18
+ set transform-set CE_UIO_TO_CE_GYE_SET
+ match address GRE1_ACL
+ exit
+
+crypto ipsec transform-set CE_UIO_TO_CE_CUE_SET esp-aes esp-sha-hmac
+crypto map CE_UIO_MAP2 2 ipsec-isakmp
+ set peer 210.10.42.22
+ set transform-set CE_UIO_TO_CE_CUE_SET
+ match address GRE2_ACL
+ exit
+
+
+int s0/1/0
+ crypto map CE_UIO_MAP1
+exit
+do wr
+
+int s0/2/0
+ crypto map CE_UIO_MAP2
+exit
+do wr
+
+*CE-GYE*
+
+ip access-list extended GRE_ACL
+ permit gre host 210.10.42.18 host 210.10.42.1
+exit
+
+crypto isakmp policy 1
+ encryption aes
+ hash sha
+ authentication pre-share
+ group 2
+ exit
+
+crypto isakmp key daya address 210.10.42.1
+
+crypto ipsec transform-set CE_GYE_TO_CE_UIO_SET esp-aes esp-sha-hmac
+crypto map CE_GYE_MAP 1 ipsec-isakmp
+ set peer 210.10.42.1
+ set transform-set CE_GYE_TO_CE_UIO_SET
+ match address GRE_ACL
+ exit
+
+int s0/1/0
+ crypto map CE_GYE_MAP
+exit
+do wr
+
+
+
+*CE-CUE*
+
+ip access-list extended GRE_ACL
+ permit gre host 210.10.42.22 host 210.10.42.25
+exit
+
+crypto isakmp policy 1
+ encryption aes
+ hash sha
+ authentication pre-share
+ group 2
+ exit
+
+crypto isakmp key daya address 210.10.42.25
+
+crypto ipsec transform-set CE_CUE_TO_CE_UIO_SET esp-aes esp-sha-hmac
+crypto map CE_CUE_MAP 1 ipsec-isakmp
+ set peer 210.10.42.25
+ set transform-set CE_CUE_TO_CE_UIO_SET
+ match address GRE_ACL
+ exit
+
+int s0/1/0
+ crypto map CE_CUE_MAP
+exit
+do wr
+
+
+---verificacion---
+-Verificar protocolo del tunel-
+show interface tunnel value
+
+-Verificar las cantidad de paquetes encriptados, desencirptados por parte del IPSEC-
+show crypto ipsec sa
+
+-Verificar el estado de ISAKMP-
+show crypto isakmp sa
+
+-Ver Listas de acceso-
+show access-lists 

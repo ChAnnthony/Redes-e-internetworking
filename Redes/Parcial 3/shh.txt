@@ -1,0 +1,13 @@
+ena
+config t
+enable secret REDESparcial2
+ip domain_name espe.edu.ec
+crypto key generate rsa
+2048
+ip ssh version 2
+username REDES secret PARCIAL2
+
+live vty 0 4
+ transport input ssh
+ login local
+

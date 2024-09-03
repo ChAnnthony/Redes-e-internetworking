@@ -1,0 +1,312 @@
+﻿==============S1-KC=======
+
+
+enable
+config t
+hostname S1-KC
+
+
+vlan 100
+ name GERENCIA
+vlan 200
+ name TESORERIA
+exit
+
+
+int range fa0/10-19
+ switchport mode access
+ switchport access vlan 100
+int range fa0/19-24
+ switchport mode access
+ switchport access vlan 200
+
+
+int g0/1
+ switchport mode trunk
+ switchport trunk native vlan 77
+do wr
+
+
+------------------------------------
+--------------------MLS-------------------------------
+enable
+config t
+hostname MLS-KC
+
+
+vlan 100 
+ name GERENCIA
+vlan 200
+ name TESORERIA
+exit
+
+
+int g0/2
+ switchport trunk encap dot1q
+ switchport mode trunk
+ switchport trunk native vlan 77
+do wr 
+
+
+ip routing
+
+
+int g0/1
+ no switchport 
+ ip add 10.5.10.98 255.255.255.252
+ no shut
+
+
+int vlan 100
+ description SVI VLAN100
+ ip add 10.5.0.1 255.255.248.0
+ ip helper-address 10.5.10.97
+ no shut
+int vlan 200
+ description SVI VLAN200
+ ip add 10.5.8.1 255.255.254.0
+ ip helper-address 10.5.10.97
+ no shut
+ do wr
+
+
+router rip
+version 2
+network 10.5.10.96
+network 110.5.0.0 
+network 10.5.8.0
+passive-int g0/2
+no auto-summ
+do wr
+
+
+=======================
+-----------R1-KC------------
+enable
+config t
+hostname R1-KC
+
+
+int g0/0/1
+ ip add 10.5.10.97 255.255.255.252
+ no shut
+
+
+int s0/1/0
+ ip add 5.5.5.1 255.255.255.252
+ no shut
+do wr
+
+
+router ospf 1
+router-id 11.11.11.11
+network 5.5.5.0 0.0.0.3 area 0
+do wr
+
+
+ip dhcp excluded-add 10.5.0.1 10.5.0.4
+ip dhcp excluded-add 10.5.8.1 10.5.8.4
+
+
+ip dhcp pool V100
+ network 10.5.0.0 255.255.248.0
+ default-route 10.5.0.1
+ dns-server 10.5.10.70
+
+
+ip dhcp pool V200
+ network 10.5.8.0 255.255.254.0
+ default-route 10.5.8.1 
+ dns-server 10.5.10.70
+do wr
+
+
+======================================
+------------S3------------
+enable
+config t
+hostname S3-KC
+
+
+vlan 10
+ name DC1
+vlan 20
+ name DC2
+exit
+
+
+int range fa0/10-19
+ switchport mode access
+ switchport access vlan 10
+int range fa0/20-24
+ switchport mode access
+ switchport access vlan 20
+
+
+int g0/1
+ switchport mode trunk
+ switchport trunk native vlan 77
+do wr
+
+
+------------S2------------
+enable
+config t
+hostname S2
+
+
+vlan 10
+ name DC1
+vlan 20
+ name DC2
+exit
+
+
+
+
+int range g0/2, g0/1
+ switchport mode trunk
+ switchport trunk native vlan 77
+do wr
+
+
+-----------R5-KC------------
+enable
+config t
+hostname R5-KC
+
+
+int g0/0/1.10
+ encap dot1q 10
+ ip add 10.5.10.1 255.255.255.192
+ ipv6 enable
+ ipv6 address autoconfig
+ ipv6 add 2010:ABC:ABC:5::/64
+ ipv6 add FE80::1 link-local
+int g0/0/1.20
+ encap dot1q 20
+ ip add 10.5.10.65 255.255.255.224
+ ipv6 enable
+ ipv6 address autoconfig
+ ipv6 add 2010:ABC:ABC:6::/64
+ ipv6 add FE80::1 link-local
+int g0/0/1.77
+ encap dot1q 77 native
+int g0/0/1
+ no shut
+
+
+int s0/1/0
+ ip add 5.5.5.14 255.255.255.252
+ no shut
+do wr
+
+
+router ospf 1
+router-id 2.2.2.2
+network 5.5.5.12 0.0.0.3 area 0
+do wr
+
+
+
+
+=====================
+-----------R2-KC------------
+enable
+config t
+hostname R2-KC
+
+
+int g0/0/0
+ ip add 5.5.5.5 255.255.255.252
+ no shut
+int s0/1/0
+ ip add 5.5.5.2 255.255.255.252
+ clock rate 4000000
+ no shut
+
+
+router ospf 2
+ router-id 3.3.3.3
+ network 5.5.5.4 0.0.0.3 area 0
+ network 5.5.5.0 0.0.0.3 area 0
+do wr
+
+
+-----------R3-KC------------
+enable
+config t
+hostname R3-KC
+
+
+int g0/0/0
+ ip add 5.5.5.6 255.255.255.252
+ no shut
+int g0/0/1
+ ip add 5.5.5.9 255.255.255.252
+ no shut
+
+
+router ospf 2
+ router-id 4.4.4.4
+ network 5.5.5.4 0.0.0.3 area 0
+ network 5.5.5.8 0.0.0.3 area 0
+
+
+do wr
+
+
+-----------R4-KC------------
+enable
+config t
+hostname R4-KC
+
+
+int g0/0/1
+ ip add 5.5.5.10 255.255.255.252
+ no shut
+int s0/1/0
+ ip add 5.5.5.13 255.255.255.252
+ clock rate 4000000
+ no shut
+
+
+router ospf 2
+ router-id 5.5.5.5
+ network 5.5.5.8 0.0.0.3 area 0
+ network 5.5.5.12 0.0.0.3 area 0
+do wr
+
+
+-------------R1-KC-------
+
+
+int tunnel 1
+ip add 10.5.10.101 255.255.255.252
+tunnel source s0/1/0
+tunnel destination 5.5.5.14
+-------------R5-KC-------
+
+
+int tunnel 1
+ip add 10.5.10.102 255.255.255.252
+tunnel source s0/1/0
+tunnel destination 5.5.5.1
+
+
+-------------R1-KC-------
+router rip
+version 2
+network 10.5.10.96
+network 10.5.10.100
+do wr
+-------------R5-KC-------
+router rip
+version 2
+network 10.5.10.0
+network 10.5.10.64
+passive-int g0/0/1.10
+passive-int g0/0/1.20
+no auto-summ
+no auto-summ
+do wr
