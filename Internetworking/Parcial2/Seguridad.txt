@@ -1,0 +1,40 @@
+Politica de seguridad
+-La laptop0 no aceda al server0, pero la vlan 100 si, la vlan 1000 no debe acceder al server.
+-Todo lo demas esta permitido.
+
+ACL estandr
+
+R4
+access-list 1 deny host 192.168.100.10
+access-list 1 permit 192.168.100.0 0.0.0.63
+access-list 1 deny 192.168.10.0 0.0.0.255
+access-list 1 permit any
+
+int g0/0/0 
+ ip access-group 1 out
+---------------------------------------------------------
+- Se debe bloquear el trafico HTTP y permitir el HTTPS desde las vlans hacia el server.
+-Todo lo demas esta permitido.
+
+R1
+(Extendido Numerado)
+access-list 100 deny tcp 192.168.100.0 0.0.0.63 host 192.168.200.10 eq 80 
+access-list 100 deny tcp 192.168.10.0 0.0.0.255 host 192.168.200.10 eq 80 
+access-list 100 permit ip any any
+
+(Extendido Nombrado)
+ip access-list extended BLOQUEO-HTTP
+deny tcp 192.168.100.0 0.0.0.63 host 192.168.200.10 eq 80 
+deny tcp 192.168.10.0 0.0.0.255 host 192.168.200.10 eq 80 
+permit ip any any
+
+int g0/0/1
+ ip access-group 100 out
+
+int g0/0/0.100
+ ip access-group 100 in
+int g0/0/0.1000
+ ip access-group 100 in
+ 
+(Borrar access list)
+no access-list 100

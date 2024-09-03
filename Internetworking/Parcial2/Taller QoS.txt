@@ -1,0 +1,158 @@
+S1
+
+enable 
+config t 
+hostname S1
+
+vlan 100
+name GERENCIA
+vlan 1000
+name FINANCIERO
+exit
+
+int range fa0/10 -19
+ switchport mode access
+ switchport access vlan 100
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 1000
+
+int range fa0/7, fa0/8
+ channel-group 1 mode auto
+ shut
+ 
+int Po1
+ switchport mode trunk
+ switchport trunk native vlan 789
+
+do wr
+
+int range fa0/7, fa0/8
+ no shut
+ do wr
+
+
+
+
+
+
+++++++++++++++++++++++++++++++
+S2
+
+enable 
+config t 
+hostname S2
+
+vlan 100
+name GERENCIA
+vlan 1000
+name FINANCIERO
+exit
+
+int range fa0/7, fa0/1
+ channel-group 1 mode desirable
+ 
+int Po1
+ switchport mode trunk
+ switchport trunk native vlan 789
+
+int g0/1 
+ switchport mode trunk
+ switchport trunk native vlan 789
+
+do wr
+
+++++++++++++++++++++++++++++++
+R1
+
+enable 
+config t
+hostname R1
+
+int g0/0/0.100
+ encap dot1q
+ ip add 192.168.100.1 255.255.255.192
+int g0/0/0.1000
+ encap dot1q
+ ip add 192.168.10.1 255.255.255.0
+int g0/0/0.789
+ encap dot1q 789 native
+int g0/0/0
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.1 255.255.255.252
+ no shut
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.100.0 0.0.0.63 area 100
+ network 192.168.10.0 0.0.0.255 area 100
+ network 172.16.10.0 0.0.0.3 area 100
+ passive-int g0/0/0.100
+ passive-int g0/0/0.1000
+
+do wr
+ 
+++++++++++++++++++++++++++++++
+R2
+
+enable 
+config t
+hostname R2
+
+int g0/0/0
+ ip add 172.16.10.5 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.2 255.255.255.252
+ no shut
+
+router ospf 2
+ router-id 2.2.2.2
+ network 172.16.10.4 0.0.0.3 area 0
+ network 172.16.10.0 0.0.0.3 area 100
+
+do wr
+++++++++++++++++++++++++++++++
+R3
+
+enable 
+config t
+hostname R3
+
+int g0/0/0
+ ip add 172.16.10.6 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.9 255.255.255.252
+ no shut
+
+router ospf 3
+ router-id 3.3.3.3
+ network 172.16.10.4 0.0.0.3 area 0
+ network 172.16.10.8 0.0.0.3 area 200
+
+do wr
+++++++++++++++++++++++++++++++
+R4
+enable 
+config t
+hostname R4
+
+int g0/0/0
+ ip add 192.168.200.1 255.255.255.224
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.10 255.255.255.252
+ no shut
+
+router ospf 4
+ router-id 4.4.4.4
+ network 192.168.200.0 0.0.0.31 area 200
+ network 172.16.10.8 0.0.0.3 area 200
+
+do wr

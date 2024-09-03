@@ -1,0 +1,250 @@
+S1_UCh
+enable
+config t
+hostname S1_UCh
+
+vlan 10
+ name DCCO
+vlan 20
+ name BIOTEC
+
+int range fa0/10 -19
+ switchport mode access
+ switchport access vlan 10
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 20
+
+int range fa0/1,fa0/3, fa0/5
+ channel-group 1 mode auto
+ shut
+
+int Po1
+ switchport mode trunk 
+ switchport trunk native vlan 777
+
+do wr
+
+-------------------------------------
+S2_UCh
+enable 
+config t
+hostname S2_UCh
+
+vlan 10
+ name DCCO
+vlan 20
+ name BIOTEC
+
+
+int range fa0/1,fa0/3, fa0/5
+ channel-group 1 mode desirable
+
+int Po1
+ switchport mode trunk 
+ switchport trunk native vlan 777
+
+int range g0/1
+ switchport mode trunk
+ switchport trunk native vlan 777
+do wr
+-------------------------------------
+R1_UCh
+
+enable 
+config t
+hostname R1_UCh
+
+int g0/0/1.10
+ encap dot1q 10
+ ip add 192.168.10.1 255.255.255.128
+int g0/0/1.20
+ encap dot1q 20
+ ip add 192.168.20.1 255.255.255.192
+int g0/0/1.777
+ encap dot1q 777 native
+int g0/0/1
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.1 255.255.255.252
+ no shut
+
+router eigrp 1
+ eigrp router-id 1.1.1.1
+ network 10.10.10.0 0.0.0.3
+ network 192.168.10.0 0.0.0.127
+ network 192.168.20.0 0.0.0.63
+ passive-int g0/0/1.20
+ passive-int g0/0/1.10
+ no auto-summary
+
+do wr
+
+-------------------------------------
+R2_UCh
+
+enable 
+config t
+hostname R2_UCh
+
+int g0/0/1
+ ip add 10.10.10.5 255.255.255.252
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.2 255.255.255.252
+ no shut
+
+router eigrp 1
+ eigrp router-id 2.2.2.2
+ network 10.10.10.0 0.0.0.3
+ no auto-summary
+
+router ospf 2
+ router-id 2.2.2.2 
+ network 10.10.10.4 0.0.0.3 area 0
+
+router eigrp 1
+ redistribute ospf 2 metric 1500 1000 255 1 1500
+
+router ospf 2
+ redistribute eigrp 1 subnets 
+do wr
+
+----------------------------------------
+R3_UCh
+ENA 
+CONFIG T
+hostname R3_UCh
+
+int g0/0/1
+ ip add 10.10.10.6 255.255.255.252
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.9 255.255.255.252
+ no shut
+
+router ospf 2
+ router-id 3.3.3.3
+ network 10.10.10.8 0.0.0.3 area 0
+ network 10.10.10.4 0.0.0.3 area 0
+
+do wr
+---------------------------------------
+R4_UCh 
+
+ENA 
+CONFIG T
+hostname R4_UCh
+
+int g0/0/0
+ ip add 10.10.10.10 255.255.255.252
+ no shut
+
+int g0/0/1
+ip add 10.10.10.13 255.255.255.252
+no shut
+
+router ospf 2
+ router-id 4.4.4.4
+ network 10.10.10.8 0.0.0.3 area 0
+
+router bgp 100
+neighbor 10.10.10.14 remote-as 200
+network 192.168.10.0 mask  255.255.255.128
+network 192.168.20.0 mask 255.255.255.192
+
+router ospf 2
+redistribute bgp 100 subnets
+
+do wr
+-----------------------------------------------
+R5_UCh
+
+ENA 
+CONFIG T
+hostname R5_UCh
+
+int g0/0/1
+ ip add 10.10.10.14 255.255.255.252
+ no shut
+
+int g0/0/0
+ip add 10.10.10.17 255.255.255.252
+no shut
+
+router bgp 200
+neighbor 10.10.10.13 remote-as 100
+neighbor 10.10.10.18 remote-as 300
+
+do wr
+-------------------------------------------------
+R6_UCh
+
+ENA 
+CONFIG T
+hostname R6_UCh
+
+int g0/0/1
+ip add 172.16.100.1 255.255.255.0
+no shut
+
+int g0/0/0
+ip add 10.10.10.18 255.255.255.252
+no shut
+
+router bgp 300
+neighbor 10.10.10.17 remote-as 200
+network 172.16.100.0 mask 255.255.255.0
+
+do wr
+-------------------------------------------------
+S3_UCh
+
+enable 
+config t
+hostname S3_UCh
+
+do wr
+---------------------------------------------
+QoS R1
+
+enable 
+config t
+class-map HTTPS 
+match protocol https
+exit
+
+policy-map QOS
+class HTTPS
+set ip dscp af32
+bandwidth percent 5
+exit
+exit
+
+int g0/0/0
+service-policy output QOS
+
+do wr
+
+Seguridad ACL
+
+access-list 100 deny tcp 192.168.20.0 0.0.0.63 172.16.100.0 0.0.0.255 eq 80
+access-list 100 deny icmp 192.168.10.0 0.0.0.127 host 172.16.100.20 
+access-list 100 permit ip any any
+
+int g0/0/1.10
+ip access-group 100 in
+int g0/0/1.20
+ip access-group 100 in
+
+do wr
+
+enable
+config t
+do show ip route
+
+
+

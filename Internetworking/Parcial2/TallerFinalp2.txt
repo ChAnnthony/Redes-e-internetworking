@@ -1,0 +1,211 @@
+S2
+enable
+config t
+hostname S2
+
+vlan 100
+ name VENTAS
+vlan 200
+ name TI
+
+int range fa0/10-15
+switchport mode access
+switchport access vlan 100
+
+int range fa0/1,fa0/5
+channel-group 1 mode active
+shutdown
+
+int Po1
+switchport mode trunk
+switchport trunk native vlan 777
+
+int g0/1
+switchport mode trunk
+switchport trunk native vlan 888
+
+do wr
+--------------------------------
+S1
+enable
+config t
+hostname S1
+
+vlan 100
+ name VENTAS
+vlan 200
+ name TI
+
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 200
+
+int range fa0/1,fa0/5
+channel-group 1 mode active
+
+int Po1
+switchport mode trunk
+switchport trunk native vlan 777
+
+do wr
+
+-----------------------
+R1
+
+enable
+config t
+hostname R1
+
+int g0/0/1.100
+ encap dot1q 100
+ ip add 192.168.100.1 255.255.255.128
+
+int g0/0/1.200
+ encap dot1q 200 
+ ip add 192.168.200.1 255.255.255.128
+
+int g0/0/1.888
+ encap dot1q 888 native
+ 
+int g0/0/1
+no shut 
+
+int g0/0/0
+ ip add 10.10.10.1 255.255.255.252
+ no shut
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.100.0 0.0.0.127 area 20
+ network 192.168.200.0 0.0.0.127 area 20
+ network 10.10.10.0 0.0.0.3 area 0
+ passive-interface g0/0/1.100
+ passive-interface g0/0/1.200
+do wr
+-------------------------------
+R2
+
+enable
+config t
+hostname R2
+
+int g0/0/0
+ ip add 10.10.10.2 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 10.10.10.5 255.255.255.252
+ no shut
+
+router ospf 2
+ router-id 2.2.2.2
+ network 10.10.10.0 0.0.0.3 area 0
+ network 10.10.10.4 0.0.0.3 area 100
+
+do wr
+--------------------------
+R3
+enable
+config t
+hostname R3
+
+int g0/0/1
+ ip add 10.10.10.6 255.255.255.252
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.9 255.255.255.252
+ no shut
+
+router ospf 3
+ router-id 3.3.3.3
+ network 10.10.10.4 0.0.0.3 area 100
+
+router bgp 30 
+ neighbor 10.10.10.10 remote-as 500
+ network 192.168.200.0 mask 255.255.255.128
+ network 192.168.100.0 mask 255.255.255.128
+
+router ospf 3
+ redistribute bgp 30 subnets
+
+do wr
+
+-------------------------------------------
+
+R4
+
+ena
+config t
+
+int g0/0/1
+ ip add 10.10.10.13 255.255.255.252
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.10 255.255.255.252
+ no shut
+
+router bgp 500
+ neighbor 10.10.10.9 remote-as 30
+ neighbor 10.10.10.14 remote-as 100
+
+do wr
+
+--------------------------------------------
+
+R5
+ena
+config t
+
+int g0/0/1
+ ip add 10.10.10.14 255.255.255.252
+ no shut
+
+int g0/0/0
+ ip add 172.16.100.1 255.255.255.192
+ no shut
+
+router bgp 100
+ neighbor 10.10.10.13 remote-as 500
+ network 172.16.100.0 mask 255.255.255.192
+
+do wr
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+POLITICA QoS
+- Tráfico HTTPS se debe marcar con AF33 y 
+ se garantiza 2%
+- Tráfico SNMP se debe marcar con AF11 y 
+se garantiza el 3%
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+POLITICA DE SEGURIDAD
+- Ping debe estar bloqueado desde las VLANs
+ al server
+- HTTP no funciona en la VLAN100
+ al server
+- Todo lo demas esta permitido
+
+class-map HTTPS
+match protocol https 
+class-map SNMP
+match protocol snmp
+exit
+
+policy-map POLITICA-QOS
+ class HTTPS
+ set ip dscp af33
+ bandwidth percent 2
+exit
+
+class SNMP
+set ip dscp af11
+bandwidth percent 3
+exit
+exit
+
+int g0/0/0
+ service-policy output POLITICA-QOS
+
+do wr
+

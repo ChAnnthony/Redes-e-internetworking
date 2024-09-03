@@ -1,0 +1,310 @@
+s1
+config t
+
+vlan 100
+ name GERENCIA
+vlan 200 
+ name TI
+exit
+
+int range e1/0 -3
+ switchport mode access
+ switchport access vlan 100
+int range e2/0 -3
+ switchport mode access
+ switchport access vlan 200
+
+int e0/0
+ switchport trunk encap dot1q
+ switchport mode trunk
+ switchport trunk native vlan 77
+ 
+ do wr 
+
+++++++++++++++++++++++++++++++
+R2
+
+config t
+
+int e0/0.100
+ encap dot1q 100
+ ip add 192.168.100.1 255.255.255.224
+
+int e0/0.200
+ encap dot1q 200
+ ip add 192.168.200.1 255.255.255.192
+
+int e0/0.77
+ encap dot1q 77 native
+int e0/0
+ no shut
+
+int e0/1
+ ip add 10.10.10.1 255.255.255.252
+ no shut
+
+router ospf 2
+ router-id 2.2.2.2
+ network 192.168.100.0 0.0.0.31 area 0
+ network 192.168.200.0 0.0.0.63 area 0
+ network 10.10.10.0 0.0.0.3 area 0
+ passive-interface e0/0.100
+ passive-interface e0/0.200
+
+do wr
+
+++++++++++++++++++++++++++++++++
+R1
+config t
+
+interface e0/1
+ ip add 10.10.10.2 255.255.255.252
+ no shut
+
+interface s4/0
+ ip add 10.10.10.5 255.255.255.252
+ no shut
+
+router ospf 1
+ router-id 1.1.1.1
+ network 10.10.10.0 0.0.0.3 area 0
+
+router bgp 5000
+ neighbor 10.10.10.6 remote-as 100
+ network 10.10.10.4 mask 255.255.255.252
+
+router eigrp 1
+eigrp router-id 1.1.1.1
+network 172.16.50.0 0.0.0.3
+no auto-summary
+
+router ospf 1
+redistribute eigrp 1 subnets
+exit
+
+router eigrp 1
+redistribute ospf 1 metric 1000 1500 255 1 1500
+exit 
+
+do wr
+++++++++++++++++++++++++++++++++
+R3
+
+config t
+
+int s4/0
+ ip add 10.10.10.6 255.255.255.252
+ no shut
+
+int e0/0
+ ip add 10.10.10.9 255.255.255.252
+ no shut
+
+router bgp 100
+ neighbor 10.10.10.5 remote-as 5000
+ neighbor 10.10.10.10 remote-as 200
+
+do wr
+
++++++++++++++++++++++++++++++++++
+R4
+
+config t
+
+int s4/0
+ ip add 10.10.10.13 255.255.255.252
+ no shut
+
+int e0/0
+ ip add 10.10.10.10 255.255.255.252
+ no shut
+
+router bgp 200
+ neighbor 10.10.10.14 remote-as 3000
+ neighbor 10.10.10.9 remote-as 100
+
+++++++++++++++++++++++++++
+R5
+
+config t
+
+int s4/0
+ ip add 10.10.10.14 255.255.255.252
+ no shut
+int e0/0 
+ ip add 172.16.100.1 255.255.255.128
+ no shut
+
+router bgp 3000
+ neighbor 10.10.10.13 remote-as 200
+ network 10.10.10.12 mask 255.255.255.252
+
+router eigrp 1
+eigrp router-id 5.5.5.5
+network 172.16.50.0 0.0.0.3
+network 172.16.100.0 0.0.0.127
+no auto-summary
+
+ do wr
+------------------------
+VPN GRE R1                                             |
+int tunnel 1                                               |
+ip add 172.16.50.1 255.255.255.252     |
+tunnel source 10.10.10.5                        |
+tunnel destination 10.10.10.14              |
+                                                                   |
+VPN GRE R5                                             |
+int tunnel 1                                               |
+ip add 172.16.50.2 255.255.255.252    |
+tunnel source 10.10.10.14                     |
+tunnel destination 10.10.10.5                |
+++++++++++++++++++++++++++++++++
+MIO
++++++++++++++++++++++++++++++++++
+s1
+enable
+config t
+hostsname S1
+
+vlan 100
+ name GERENCIA
+
+vlan 200
+ name TI
+exit
+
+interface range e1/0 -3
+ switchport mode access
+ switchport access vlan 100
+
+interface range e2/0 -3
+ switchport mode access
+ switchport access vlan 200
+
+interface range e0/0
+switchport trunk encap dot1q
+switchport mode trunk 
+switchport trunk native vlan 777
+
+do wr
+++++++++++++++++++++++
+r2
+
+enable 
+config t
+hostname R2
+
+int e0/0.100
+ encap dot1q 100
+ ip add 192.168.100.1 255.255.255.224
+
+int e0/0.200
+ encap dot1q 200
+ ip add 192.168.200.1 255.255.255.192
+
+int e0/0.777
+ encap dot1q 777 native
+int e0/0
+ no shut
+
+interface e0/1
+ ip add 10.10.10.1 255.255.255.252
+ no shut
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.100.0 0.0.0.31 area 0
+ network 192.168.200.0 0.0.0.63 area 0
+ network 10.10.10.0 0.0.0.3 area 0
+ passive-interface e0/0.100
+ passive-interface e0/0.200
+
+do wr
+++++++++++++++++++++++
+r1
+
+enable 
+config t
+hostname R1
+
+interface e0/1
+ ip add 10.10.10.2 255.255.255.252
+ no shut
+
+interface s4/0
+ ip add 10.10.10.5 255.255.255.252
+ no shut
+
+router ospf 2
+ router-id 2.2.2.2
+ network 10.10.10.4 0.0.0.3 area 0
+ network 10.10.10.0 0.0.0.3 area 0
+
+do wr
+
+router bgp 5000
+ neighbor 10.10.10.6 remote-as 100
+ network 10.10.10.4 mask 255.255.255.252
+
+do wr
+
+++++++++++++++++++++++
+r5
+
+enable 
+config t
+hostname R5
+
+int s4/0
+ ip add 10.10.10.14 255.255.255.252
+ no shut
+int e0/0 
+ ip add 172.16.100.1 255.255.255.128
+ no shut
+
+router bgp 3000
+ neighbor 10.10.10.13 remotee-as 200
+ network 10.10.10.12 mask 255.255.255.252
+ do wr
+
++++++++++++++++++++++
+enable 
+config t
+hostname R3
+
+int s4/0
+ ip add 10.10.10.6 255.255.255.252
+ no shut
+
+int e0/0
+ ip add 10.10.10.9 255.255.255.252
+ no shut
+
+router bgp 100
+ neighbor 10.10.10.5 remote-as 5000
+neighbor 10.10.10.10 remote-as 200
+
+do wr
+--------------------------------------
+enable 
+config t
+hostname R4
+
+int s4/0
+ ip add 10.10.10.13 255.255.255.252
+ no shut
+
+int e0/0
+ ip add 10.10.10.10 255.255.255.252
+ no shut
+
+router bgp 200
+ neighbor 10.10.10.14 remote-as 3000
+neighbor 10.10.10.9 remote-as 100
+
+do wr
+-------
+NOTA  /
+---------------
+Ctrl+Shift+v  /
+-------------

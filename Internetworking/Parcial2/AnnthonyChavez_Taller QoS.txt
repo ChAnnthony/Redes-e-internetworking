@@ -1,0 +1,210 @@
+S1
+
+enable 
+config t
+hostname S1
+
+vlan 100
+ name GERENCIA
+vlan 1000
+ name FINANCIERO
+
+int range fa0/10 -19
+ switchport mode access
+ switchport access vlan 100
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 1000
+
+int range f0/7, f0/8
+ channel-group 1 mode auto
+ shut
+
+int Po1
+ switchport mode trunk
+ switchport trunk native vlan 789
+ 
+do wr
+
+--------------------------------------------
+S2
+
+enable 
+config t
+hostname S2
+
+vlan 100
+ name GERENCIA
+vlan 1000
+ name FINANCIERO
+
+int range f0/1, f0/7
+ channel-group 1 mode desirable
+
+int Po1
+ switchport mode trunk
+ switchport trunk native vlan 789
+ 
+int g0/1
+ switchport mode trunk
+ switchport trunk native vlan 789
+ 
+do wr
+
+---------------------------------------
+R1
+
+enable 
+config t
+hostname R1
+
+int g0/0/0.100
+ encap dot1q 100
+ ip add 192.168.100.1 255.255.255.192
+int g0/0/0.1000
+ encap dot1q 1000
+ ip add 192.168.10.1 255.255.255.0
+int g0/0/0.789
+ encap dot1q 789 native
+int g0/0/0
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.1 255.255.255.252
+ no shut
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.100.0 0.0.0.63 area 100
+ network 192.168.10.0 0.0.0.255 area 100
+ network 172.16.10.0 0.0.0.3 area 100
+ passive-int g0/0/0.100
+ passive-int g0/0/0.1000
+
+do wr
+
+------------------------------------------
+R2
+enable 
+config t
+hostname R2
+
+int g0/0/0
+ ip add 172.16.10.5 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.2 255.255.255.252
+ no shut
+
+router ospf 2
+ router-id 2.2.2.2
+ network 172.16.10.0 0.0.0.3 area 100
+ network 172.16.10.4 0.0.0.3 area 0
+
+do wr
+
+------------------------------------------
+R3
+enable 
+config t
+hostname R3
+
+int g0/0/0
+ ip add 172.16.10.6 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.9 255.255.255.252
+ no shut
+
+router ospf 3
+ router-id 3.3.3.3
+ network 172.16.10.8 0.0.0.3 area 200
+ network 172.16.10.4 0.0.0.3 area 0
+
+do wr
+
+------------------------------------------
+R4
+enable 
+config t
+hostname R4
+
+int g0/0/0
+ ip add 192.168.200.1 255.255.255.224
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.10 255.255.255.252
+ no shut
+
+router ospf 4
+ router-id 4.4.4.4
+ network 172.16.10.8 0.0.0.3 area 200
+ network 192.168.200.0 0.0.0.31 area 200
+
+do wr
+-------------------------------------------------------------
+-Asignar AF41 al trafico HTTPS y reservar de forma exclusiva un 10 % AB
+++++++++++++++++++++++++++
+R1
+
+class-map IDENT-HTTPS
+match protocol https
+exit
+
+policy-map POLITICA-QOS
+class IDENT-HTTPS
+set ip dscp af41
+priority percent 10
+exit
+exit
+int g0/0/1
+service-policy output POLITICA-QOS
+
+R4
+class-map IDENT-HTTPS
+match protocol https
+exit
+
+policy-map POLITICA-QOS
+class IDENT-HTTPS
+set ip dscp af41
+priority percent 10
+exit
+exit
+int g0/0/1
+service-policy output POLITICA-QOS
+
+---------------------------------------------
+-Asignar AF21 al PING al server y reservar un 1% del AB
+--------------------------------------
+R1
+
+class-map IDENT-PING
+match protocol icmp
+exit
+
+policy-map POLITICA-QOS
+class IDENT-PING
+set ip dscp af21
+bandwidth percent 1
+exit
+exit
+int g0/0/1
+service-policy output POLITICA-QOS
+
+R4
+class-map IDENT-PING
+match protocol icmp
+exit
+
+policy-map POLITICA-QOS
+class IDENT-PING
+set ip dscp af21
+bandwidth percent 1
+exit
+exit
+int g0/0/0
+service-policy output POLITICA-QOS

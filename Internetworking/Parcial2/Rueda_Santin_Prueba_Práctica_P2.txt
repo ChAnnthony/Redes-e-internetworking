@@ -1,0 +1,245 @@
+S1
+
+ena
+config t
+hostname S1_SS_JR
+
+vlan 10
+ name DCCO
+vlan 20
+ name BIOTEC
+exit
+
+int range fa0/10 -19 
+ switchport mode access 
+ switchport access vlan 10
+
+int range fa0/20 -24 
+ switchport mode access 
+ switchport access vlan 20
+
+int range fa0/1, fa0/3, fa0/5
+ channel-group 1 mode active 
+ shut
+
+int Po1 
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+do wr
+***********************************
+S2
+
+ena
+config t
+hostname S2_SS_JR
+
+vlan 10
+ name DCCO
+vlan 20
+ name BIOTEC
+exit
+
+
+int range fa0/1, fa0/3, fa0/5
+ channel-group 1 mode active 
+
+int Po1 
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+int g0/1
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+do wr
+***********************************
+R1
+
+ena
+config t
+hostname R1_SS_JR	
+
+int g0/0/1.10 
+ encap dot1q 10
+ ip add 192.168.10.1 255.255.255.128
+int g0/0/1.20 
+ encap dot1q 20
+ ip add 192.168.20.1 255.255.255.192
+int g0/0/1.777
+ encap dot1q 777 native
+int g0/0/1 
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.1 255.255.255.252
+ no shut
+
+router eigrp 1
+ eigrp router-id 1.1.1.1
+ network 192.168.10.0 0.0.0.127
+ network 192.168.20.0 0.0.0.63
+ network 10.10.10.0 0.0.0.3
+ passive-int g0/0/1.10
+ passive-int g0/0/1.20
+ no auto-summary
+
+do wr
+***********************************
+R2
+
+ena
+config t
+hostname R2_SS_JR	
+
+int g0/0/0
+ ip add 10.10.10.2 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 10.10.10.5 255.255.255.252
+ no shut 
+
+router eigrp 1
+ eigrp router-id 1.1.1.2
+ network 10.10.10.0 0.0.0.3
+ no auto-summary
+
+router ospf 1
+ router-id 1.1.1.1
+ network 10.10.10.4 0.0.0.3 area 0
+ 
+router eigrp 1
+ redistribute ospf 1 metric 1500 1000 255 1 1500
+
+router ospf 1
+ redistribute eigrp 1 subnets
+
+do wr
+***********************************
+R3
+
+ena
+config t
+hostname R3_SS_JR	
+
+int g0/0/0
+ ip add 10.10.10.9 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 10.10.10.6 255.255.255.252
+ no shut 
+
+router ospf 2
+ router-id 1.1.1.2
+ network 10.10.10.4 0.0.0.3 area 0
+ network 10.10.10.8 0.0.0.3 area 0
+
+do wr
+***********************************
+R4
+
+ena
+config t
+hostname R4_SS_JR
+
+int g0/0/0
+ ip add 10.10.10.10 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 10.10.10.13 255.255.255.252
+ no shut 
+
+router ospf 3
+ router-id 1.1.1.3
+ network 10.10.10.8 0.0.0.3 area 0
+
+router bgp 100
+ neighbor 10.10.10.14 remote-as 200
+ network 192.168.10.0 mask 255.255.255.128 
+ network 192.168.20.0 mask 255.255.255.192
+
+router ospf 3 
+ redistribute bgp 100 subnets 
+
+do wr
+***********************************
+R5
+
+ena
+config t
+hostname R5_SS_JR
+
+int g0/0/0
+ ip add 10.10.10.17 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 10.10.10.14 255.255.255.252
+ no shut 
+
+router bgp 200
+ neighbor 10.10.10.13 remote-as 100
+ neighbor 10.10.10.18 remote-as 300
+
+do wr
+***********************************
+R6
+
+ena
+config t
+hostname R6_SS_JR
+
+int g0/0/0
+ ip add 10.10.10.18 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 172.16.100.1 255.255.255.0
+ no shut
+
+
+router bgp 300
+ neighbor 10.10.10.17 remote-as 200
+ network 172.16.100.0 mask 255.255.255.0
+
+do wr
+***********************************
+R1
+
+ena
+config t
+
+class-map HTTPS 
+ match protocol https
+exit
+
+policy-map UNO
+ class HTTPS
+ set ip dscp af32
+ bandwidth percent 5
+ exit
+exit
+
+int g0/0/0
+ service-policy output UNO
+
+do wr
+***********************************
+R1
+
+ena
+config t
+
+access-list 100 deny tcp 192.168.20.0 0.0.0.63 host 172.16.100.2 eq 80
+access-list 100 deny icmp 192.168.10.0 0.0.0.127 host 172.16.100.3 
+access-list 100 permit ip any any
+
+int g0/0/1.10
+ ip access-group 100 in
+
+int g0/0/1.20
+  ip access-group 100 in
+

@@ -1,0 +1,68 @@
+S1
+
+enable
+config t
+hostname s1
+
+vlan 10
+name GERENCIA
+vlan 20
+name VENTAS
+exit
+
+int range e0/0
+switchport mode access
+switchport access vlan 10
+
+int range e0/0
+switchport mode access
+switchport access vlan 20
+
+switchport trunk encap dot1q
+interface range e0/1
+switchport mode trunk 
+switchport trunk native vlan 777
+
+do wr
+
+do wr
+
++++++++++++++++++++++++++++++++++++
+R1
+ena
+config t
+hostname R1
+
+int s4/0
+ ip add 10.10.10.1 255.255.255.252
+ no shut
+
+int e0/1.10
+ encap dot1q 2
+ ip add 192.168.10.1 255.255.255.0
+int e0/1.20
+ encap dot1q 3
+ ip add 192.168.20.1 255.255.255.0
+int e0/1.777
+ encap dot1q 777 native
+int e0/1
+ no shut
+
+do wr
+
+++++++++++++++++++++++++++++++++++++++++
+R2
+
+enable
+config t
+hostname R2
+
+int e0/0
+ ip add 192.168.100.1 255.255.255.0
+ no shut
+
+int s4/0
+ ip add 10.10.10.2 255.255.255.252
+ no shut 
+
+do wr
