@@ -1,0 +1,15 @@
+APLICACION DE TECNOLOGIAS WEB
+14364
+Evolución del Internet
+Estudiante: Annthony Chávez 
+1. Década de 1960: Creación de ARPANET, una red de comunicación militar que permitía a las computadoras intercambiar información y recursos. Fue desarrollada por el Departamento de Defensa de los Estados Unidos como una forma de mantener la comunicación en caso de un ataque nuclear.
+
+2. Década de 1970: Desarrollo de los protocolos TCP/IP (Transmission Control Protocol/Internet Protocol), que establecieron un conjunto de reglas y estándares para la comunicación en red. Esto permitió que diferentes tipos de computadoras se conectaran entre sí y compartieran información de manera eficiente.
+
+3. Década de 1980: El Internet se expandió más allá del ámbito militar y académico, permitiendo la conexión de computadoras personales. Surgió el World Wide Web (WWW) como una forma más accesible de navegar por Internet. Se desarrollaron los primeros navegadores web, como NCSA Mosaic, que permitían a los usuarios acceder y visualizar sitios web.
+
+4. Década de 1990: El Internet experimentó un crecimiento explosivo con la popularización de proveedores comerciales de servicios de Internet. Surgieron motores de búsqueda como Yahoo! y posteriormente Google, que facilitaron la búsqueda y acceso a información en línea. Se desarrollaron sitios web más interactivos con contenido multimedia, como imágenes y videos.
+
+5. Años 2000: Con el avance de la tecnología móvil, el Internet se volvió cada vez más accesible a través de dispositivos como teléfonos inteligentes y tabletas. Se desarrollaron aplicaciones móviles y servicios en línea específicos para dispositivos móviles, lo que permitió a los usuarios acceder a Internet sobre la marcha y realizar diversas actividades, como enviar correos electrónicos, navegar por redes sociales y realizar compras en línea.
+
+6. Actualidad: El Internet es una parte integral de nuestras vidas, con una amplia gama de aplicaciones y servicios disponibles. La conectividad inalámbrica se ha vuelto omnipresente, permitiendo la conexión a Internet en cualquier lugar y en cualquier momento a través de tecnologías como Wi-Fi y redes móviles. Además, el Internet de las cosas (IoT) ha ganado popularidad, permitiendo la interconexión de dispositivos y objetos cotidianos a través de Internet, como electrodomésticos, vehículos y dispositivos portátiles.

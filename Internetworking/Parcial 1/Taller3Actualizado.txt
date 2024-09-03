@@ -1,0 +1,314 @@
+S3
+
+enable
+config t
+hostname S3
+
+vlan 50
+name GERENCIA 
+vlan 100
+name FINANCIERO
+vlan 10
+name ADMIN
+exit
+
+int range fa0/12 -15
+ switchport mode access
+ switchport access vlan 50
+int range fa0/16 -24
+ switchport mode access
+ switchport access vlan 100
+
+int range fa0/4 -6
+ channel-group 6 mode auto
+ shutdown
+ 
+int Po6 
+ switchport mode trunk 
+ switchport trunk native vlan 777
+ 
+do wr
+
+
+int range Fa0/4 -6
+no shut
+do wr
+++++++++++++++++++++++++++++++
+S2
+
+enable
+config t
+hostname S2
+
+vlan 50
+name GERENCIA 
+vlan 100
+name FINANCIERO
+vlan 10
+name ADMIN
+exit
+
+int range fa0/10 -24
+ switchport mode access
+ switchport access vlan 10
+
+int range fa0/1 -3
+ channel-group 1 mode passive 
+ shutdown
+
+int range fa0/4 -6
+ channel-group 6 mode desirable
+
+int Po1
+ switchport mode trunk 
+ switchport trunk native vlan 777
+ 
+int Po6 
+ switchport mode trunk 
+ switchport trunk native vlan 777
+ 
+do wr
+++++++++++++++++++++++++++++++
+S1
+
+enable
+config t
+hostname S1
+
+vlan 50
+name GERENCIA 
+vlan 100
+name FINANCIERO
+vlan 10
+name ADMIN
+exit
+
+int range fa0/1 -3
+ channel-group 1 mode active
+
+int Po1
+ switchport mode trunk 
+ switchport trunk native vlan 777
+ 
+int g0/1
+ switchport mode trunk 
+ switchport trunk native vlan 777
+ 
+do wr
+
+int range Fa0/1 -3
+no shut
+do wr
+++++++++++++++++++++++++++++++
+S4
+
+enable
+config t
+hostname S4
+
+vlan 10
+name DC1
+vlan 20
+name DC2
+exit
+
+int range fa0/1, fa0/5
+ channel-group 1 mode active
+
+int Po1
+ switchport mode trunk 
+ switchport trunk native vlan 777
+ 
+int g0/1
+ switchport mode trunk 
+ switchport trunk native vlan 777
+ 
+do wr
+
+++++++++++++++++++++++++++++++
+S5
+
+enable
+config t
+hostname S5
+
+vlan 10
+name DC1
+vlan 20
+name DC2
+exit
+
+int range fa0/10 -19
+ switchport mode access
+ switchport access vlan 10
+
+int range fa0/20 -24
+ switchport mode access
+ switchport access vlan 20
+
+
+int range fa0/1, fa0/5
+ channel-group 1 mode passive
+ shutdown
+
+int Po1
+ switchport mode trunk 
+ switchport trunk native vlan 777
+ 
+do wr
+
+int range Fa0/1, fa0/5
+no shut
+do wr
+
+++++++++++++++++++++++++++++++
+R2
+
+enable
+config t
+hostname R2
+
+int g0/0/1
+ ip add 172.16.10.5 255.255.255.252
+ no shut
+
+int g0/0/0
+ ip add 172.16.10.2 255.255.255.252
+ no shut 
+
+router eigrp 1
+ eigrp router-id 2.2.2.2
+ network 172.16.10.0 0.0.0.3
+ network 172.16.10.4 0.0.0.3
+no auto-summary
+
+do wr
+++++++++++++++++++++++++++++++
+R3
+
+enable
+config t
+hostname R3
+
+int g0/0/0.10
+ encap dot1q 10
+ ip add 10.10.10.1 255.255.255.0
+ ip helper-address 172.16.10.1
+int g0/0/0.20
+ encap dot1q 20
+ ip add 10.10.20.1 255.255.255.0
+ ip helper-address 172.16.10.1
+int g0/0/0.777
+ encap dot1q 777 native
+int g0/0/0
+ no shut
+
+int g0/0/1
+ ip add 172.16.10.6 255.255.255.252
+ no shut 
+
+router eigrp 1
+ eigrp router-id 3.3.3.3
+ network 172.16.10.4 0.0.0.3
+ network 10.10.10.0 0.0.0.255
+ network 10.10.20.0 0.0.0.255
+ no auto-summary
+
+do wr
+
+
+++++++++++++++++++++++++++++++
+R1
+
+enable 
+config t
+hostname R1
+
+int g0/0/1.10
+ encap dot1q 10
+ ip add 192.168.10.1 255.255.255.0
+
+int g0/0/1.50
+ encap dot1q 50
+ ip add 192.168.50.1 255.255.255.224
+
+int g0/0/1.100
+ encap dot1q 50
+ ip add 192.168.100.1 255.255.255.192
+
+int g0/0/1.777
+ encap dot1q 777 native
+
+int g0/0/1
+ no shut
+
+
+ip dhcp excluded-add 192.168.100.1 192.168.100.5
+ip dhcp excluded-add 192.168.10.1 192.168.10.5
+ip dhcp excluded-add 192.168.50.1 192.168.50.5
+
+ip dhcp pool V100
+ network 192.168.100.0 255.255.255.192
+ default-router 192.168.100.1
+ dns-server 10.10.20.5
+
+ip dhcp pool V50
+ network 192.168.50.0 255.255.255.224
+ default-router 192.168.50.1
+ dns-server 10.10.20.5
+
+ip dhcp pool V10
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1
+ dns-server 10.10.20.5
+
+ip dhcp excluded-add 10.10.10.1 10.10.10.5
+ip dhcp excluded-add 10.10.20.1 10.10.20.5
+
+ip dhcp pool V-10
+ network 10.10.10.0 255.255.255.0
+ default-router 10.10.10.1
+
+ip dhcp pool V20
+ network 10.10.20.0 255.255.255.0
+ default-router 10.10.20.1
+
+int g0/0/0
+ip add 172.16.10.1 255.255.255.252
+no shut
+
+router eigrp 1
+ eigrp router-id 1.1.1.1
+ network 192.168.10.0 0.0.0.255
+ network 192.168.50.0 0.0.0.31
+ network 192.168.100.0 0.0.0.63 
+ network 172.16.10.0 0.0.0.3
+ no auto-summary
+
+do wr
+++++++++++++++++++++++++++++++++++++++++
+SSH
+
+ena
+config t
+ enable secret espe-2024
+ ip domain-name espe.edu.ec
+
+ crypto key generate rsa 
+ 1024
+
+ ip ssh version 2
+ 
+ username espe secret espe-2024
+ 
+ line vty 0 4
+ transport input ssh
+ login local
+
+int vlan 10
+ ip add 192.168.10.5 255.255.255.0
+ no shut
+
+ ip default-gateway 192.168.10.1
+do wr
+

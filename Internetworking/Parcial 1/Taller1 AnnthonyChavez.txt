@@ -1,0 +1,134 @@
+S1-2960
+
+enable
+config t
+hostname S1
+
+vlan 10
+name GERENCIA
+vlan 20	
+name VENTAS
+exit
+
+int g0/2
+Switchport mode trunk
+Switchport trunk native vlan 111
+
+int g0/1
+Switchport mode trunk
+Switchport trunk native vlan 111
+do wr
+
+----------------------------------------------------------
+S2-2960
+
+enable
+config t
+hostname S2
+vlan 10
+name GERENCIA
+vlan 20	
+name VENTAS
+exit
+int range fa0/10 -19
+Switchport mode access
+Switchport access vlan 10
+int range fa0/20 -24
+Switchport mode access
+Switchport access vlan 20
+int g0/2
+Switchport mode trunk
+Switchport trunk native vlan 111
+do wr
+
+----------------------------------------------------------
+R-4331
+
+enable 
+config t 
+hostname R1
+
+int g0/0/0.10
+encap dot1q 10
+ip add 172.16.2.1 255.255.255.224
+int g0/0/0.20
+encap dot1q 20
+ip add 172.16.0.0 255.255.254.0
+int g0/0/0.11
+encap dot1q 111 native
+
+int g0/0/0
+no shut
+
+int g0/0/1
+ip add 172.16.2.105 255.255.255.252
+no shut 
+exit
+
+router eigrp 1
+eigrp router-id 1.1.1.1
+network 172.16.2.0 0.0.0.31
+network 172.16.0.0 0.0.1.255
+network 172.16.2.104 0.0.0.3
+no auto-summary
+
+do wr
+
+----------------------------------------------------------
+
+----------------------------------------------------------
+MLS-3560
+
+enable 
+config t
+hostname MLS
+
+vlan 100
+name DC1
+vlan 200
+name DC2
+
+int g0/2
+switchport trunk encap dot1q
+switchport mode trunk
+switchport trunk native vlan 222
+do wr
+
+ip routing
+int g0/1
+no switchport
+ip add 72.16.2.106 255.255.255.252
+exit
+router eigrp 1
+
+eigrp router-id 2.2.2.2
+network 172.16.2.96 0.0.0.7
+network 172.16.2.64 0.0.0.31
+network 172.16.2.104 0.0.0.3
+no auto-summary
+
+do wr
+
+----------------------------------------------------------
+S3-2960
+
+enable
+config t
+hostname S3
+
+vlan 100
+name DC1
+vlan 200
+name DC2
+
+int range fa0/14 -19
+switchport mode access
+switchport access vlan 100
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 200
+int g0/2
+switchport mode trunk
+switchport trunk native vlan 222
+
+do wr

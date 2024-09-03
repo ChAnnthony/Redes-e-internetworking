@@ -1,0 +1,215 @@
+++++++++++++++++++++++++++++++++++++++++
+do show etherchannel summary
+++++++++++++++++++++++++++++++++++++++++
+S2
+
+enable
+config t
+hostname s2
+
+vlan 1000
+name DIRECCION
+vlan 999
+name TESORERIA
+exit
+
+int range fa0/10-19
+switchport mode access
+switchport access vlan 1000
+
+int range fa0/20-24
+switchport mode access
+switchport access vlan 999
+
+int range fa0/1, fa0/3 -5
+channel-group 1 mode active
+shutdown
+
+int Po1
+switchport mode trunk
+switchport trunk native vlan 777
+
+do wr
+
+
+
+
+int range fa0/1, fa0/3 -5
+no shut
+++++++++++++++++++++++++++++++++++++++++
+S1
+
+enable
+config t
+hostname S1
+
+vlan 1000
+name DIRECCION
+vlan 999
+name TESORERIA
+exit
+
+int range fa0/1, fa0/3 -5
+channel-group 1 mode passive
+
+int Po1
+switchport mode trunk
+switchport trunk native vlan 777
+
+int g0/1
+switchport mode trunk
+switchport trunk native vlan 777
+
+do wr
+
+++++++++++++++++++++++++++++++++++++++++
+R1
+
+enable
+config t
+hostname R1
+
+int g0/0/1.1000
+ encap dot1q 1000
+ ip add 192.168.100.1 255.255.255.128
+int g0/0/1.999
+ encap dot1q 999
+ ip add 192.168.200.1 255.255.255.0
+int g0/0/1.777
+ encap dot1q 777 native
+int g0/0/1
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.2 255.255.255.252
+ no shut
+
+ip dhcp excluded-add 192.168.100.1 192.168.100.5
+ip dhcp excluded-add 192.168.200.1 192.168.200.5
+
+ip dhcp pool V1000
+network 192.168.100.0 255.255.255.128
+default-router 192.168.100.1
+dns-server 192.168.200.6
+
+ip dhcp pool V999
+network 192.168.200.0 255.255.255.0
+default-router 192.168.100.1
+dns-server 192.168.200.6
+
+do wr
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.10.0 0.0.0.127 area 0
+ network 192.168.20.0 0.0.0.255 area 0
+ network 192.168.10.0 0.0.0.31 area 0
+ network 192.168.20.0 0.0.0.63 area 0
+do wr 
+
+
+++++++++++++++++++++++++++++++++++++++++
+S3
+
+enable
+config t
+hostname S3
+
+vlan 100
+name GERENCIA
+vlan 200
+name VENTAS
+exit
+
+int range  fa0/2 -4
+channel-group 1 mode desirable
+
+int Po1
+switchport mode trunk
+switchport trunk native vlan 777
+
+int g0/1
+switchport mode trunk
+switchport trunk native vlan 777
+
+do wr
+++++++++++++++++++++++++++++++++++++++++
+S4
+
+enable
+config t
+hostname S4
+
+vlan 100
+name GERENCIA
+vlan 200
+name VENTAS
+exit
+
+int range fa0/5-15
+switchport mode access
+switchport access vlan 100
+
+int range fa0/16-24
+switchport mode access
+switchport access vlan 200
+
+int range fa0/2 -4
+channel-group 1 mode auto
+shutdown
+
+int Po1
+switchport mode trunk
+switchport trunk native vlan 777
+
+do wr
+
+
+
+int range fa0/2 -4
+no shut
+++++++++++++++++++++++++++++++++++++++++
+R2
+
+enable
+config t
+hostname R2
+
+int g0/0/1.100
+ encap dot1q 100
+ ip add 192.168.10.1 255.255.255.224
+int g0/0/1.200
+ encap dot1q 200
+ ip add 192.168.20.1 255.255.255.192
+int g0/0/1.777
+ encap dot1q 777 native
+int g0/0/1
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.1 255.255.255.252
+ no shut
+
+ip dhcp excluded-add 192.168.10.1 192.168.10.5
+ip dhcp excluded-add 192.168.20.1 192.168.20.5
+
+ip dhcp pool V100
+network 192.168.10.0 255.255.255.224
+default-router 192.168.10.1
+dns-server 192.168.200.6
+
+ip dhcp pool V200
+network 192.168.20.0 255.255.255.192
+default-router 192.168.10.1
+dns-server 192.168.200.6
+
+do wr
+
+router ospf 2
+ router-id 2.2.2.2
+ network 192.168.10.0 0.0.0.31 area 0
+ network 192.168.20.0 0.0.0.63 area 0
+ network 192.168.10.0 0.0.0.127 area 0
+ network 192.168.20.0 0.0.0.255 area 0
+do wr 
+

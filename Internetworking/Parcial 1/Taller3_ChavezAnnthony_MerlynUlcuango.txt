@@ -1,0 +1,279 @@
+S3
+
+enable 
+config t
+hostname S3
+
+vlan 50
+ name GERENCIA
+vlan 100
+ name FINANCIERO
+vlan 10
+ name ADMIN
+exit
+
+int range fa0/10 -15
+ switchport mode access
+ switchport access vlan 50
+
+int range fa0/16 -24 
+ switchport mode access 
+ switchport access vlan 100
+
+int range fa0/4 -6
+ channel-group 1 mode auto  
+ shutdown
+
+int Po1
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+do wr
+++++++++++++++++++++++++++++++++++++++
+S2
+
+enable 
+config t
+hostname S2
+
+vlan 50
+ name GERENCIA
+vlan 100
+ name FINANCIERO
+vlan 10
+ name ADMIN
+exit
+
+int range fa0/10 -20
+ switchport mode access
+ switchport access vlan 10
+
+int range fa0/4 -6
+ channel-group 1 mode desirable  
+
+int range fa0/1 -3
+ channel-group 2 mode active  
+ shutdown
+
+int Po1
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+int Po2
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+do wr
+++++++++++++++++++++++++++++++++++++++
+S1
+
+enable 
+config t
+hostname S1
+
+vlan 50
+ name GERENCIA
+vlan 100
+ name FINANCIERO
+vlan 10
+ name ADMIN
+exit
+
+int range fa0/1 -3
+ channel-group 2 mode passive
+
+int Po2
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+int g0/1 
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+do wr
+++++++++++++++++++++++++++++++++++++++
+R1
+
+enable 
+config t
+hostname R1
+
+int g0/0/1.10
+ encap dot1q 10
+ ip add 192.168.10.1 255.255.255.0
+int g0/0/1.100
+ encap dot1q 100
+ ip add 192.168.100.1 255.255.255.192
+int g0/0/1.50
+ encap dot1q 50
+ ip add 192.168.50.1 255.255.255.224
+int g0/0/1.777
+ encap dot1q 777 native
+int g0/0/1
+ no shut
+exit
+
+int g0/0/0
+ ip add 172.16.10.1 255.255.255.252
+ no shut
+ exit
+
+ip dhcp excluded-add 192.168.100.1 192.168.100.5
+ip dhcp excluded-add 192.168.10.1 192.168.10.5
+ip dhcp excluded-add 192.168.50.1 192.168.50.5
+
+ip dhcp pool V10
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1
+ dns-server 10.10.10.6
+
+ip dhcp pool V100
+ network 192.168.100.0 255.255.255.192
+ default-router 192.168.100.1
+ dns-server 10.10.10.6
+
+ip dhcp pool V50
+ network 192.168.50.0 255.255.255.224
+ default-router 192.168.50.1
+ dns-server 10.10.10.6
+
+exit
+
+router eigrp 1
+ router-id 1.1.1.1
+ network 192.168.100.0 0.0.0.63 
+ network 192.168.10.0 0.0.0.255
+ network 192.168.50.0 0.0.0.31 
+ network 172.16.10.0 0.0.0.3
+ no auto-summary
+ exit
+
+do wr
++++++++++++++++++++++++++++++++++++++++
+R2
+
+enable 
+config t
+hostname R2
+
+int g0/0/0
+ ip add 172.16.10.2 255.255.255.252
+ no shut
+ exit
+
+int g0/0/1
+ ip add 172.16.10.5 255.255.255.252
+ no shut
+ exit
+
+router eigrp 2
+ router-id 2.2.2.2
+ network 172.16.10.0 0.0.0.3 
+ network 172.16.10.4 0.0.0.3 
+ no auto-summary
+ exit
+
+do wr
+-------------------------------------------
+R3
+
+enable 
+config t
+hostname R3
+
+int g0/0/0.10
+ encap dot1q 10
+ ip add 10.10.10.1 255.255.255.0
+int g0/0/0.20
+ encap dot1q 20
+ ip add 10.10.20.1 255.255.255.0
+int g0/0/0.777
+ encap dot1q 777 native
+int g0/0/0
+ no shut
+exit
+
+int g0/0/1
+ ip add 172.16.10.6 255.255.255.252
+ no shut
+ exit
+
+
+ip dhcp excluded-add 10.10.10.1 10.10.10.5
+ip dhcp excluded-add 10.10.20.1 10.10.20.5
+
+ip dhcp pool V10
+ network 10.10.10.0 255.255.255.0
+ default-router 10.10.10.1
+
+ip dhcp pool V20
+ network 10.10.20.0 255.255.255.0
+ default-router 10.10.20.1
+ dns-server 10.10.10.6
+
+exit
+
+router eigrp 3
+ router-id 3.3.3.3
+ network 172.16.10.4 0.0.0.3 area 0
+ network 10.10.10.0 0.0.0.255 area 0
+ network 10.10.20.0 0.0.0.255 area 0
+ no auto-summary 
+ exit
+
+do wr
++++++++++++++++++++++++++++++++++++++++++++++
+S5
+
+enable 
+config t
+hostname S5
+
+vlan 10
+ name DC1
+vlan 20
+ name DC2
+exit
+
+int range fa0/10 -19
+ switchport mode access
+ switchport access vlan 10
+
+int range fa0/20 -24 
+ switchport mode access 
+ switchport access vlan 20
+
+int range fa0/1, fa0/5
+ channel-group 1 mode active 
+ shutdown
+
+int Po1
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+do wr
+--------------------------------------
+S4
+
+enable 
+config t
+hostname S4
+
+vlan 10
+ name DC1
+vlan 20
+ name DC2
+exit
+
+int range fa0/1, fa0/5
+ channel-group 1 mode active 
+
+int Po1
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+int g0/1 
+ switchport mode trunk
+ switchport trunk native vlan 777
+
+do wr
