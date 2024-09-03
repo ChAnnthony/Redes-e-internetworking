@@ -1,0 +1,186 @@
+S1
+
+enable
+config t 
+hostname S1-AC
+banner motd $
+------------------------------
+NO INGRESE SIN AUTORIZACION
+------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+do wr
+
+----------------------------------------
+
+S2
+
+enable
+config t 
+hostname S2-AC
+banner motd $
+------------------------------
+NO INGRESE SIN AUTORIZACION
+------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+do wr
+
+----------------------------------------
+
+ROUTER 1
+
+R1-
+
+enable
+config t
+hostname R1-AC
+banner motd $
+------------------------------
+NO INGRESE SIN AUTORIZACION
+------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+do wr
+
+int g0/0/0
+ description GW DE LAN-1
+ ip add 172.16.32.1 255.255.255.224
+ no shut
+
+int g0/0/1
+ description R1-AC -> R2-AC
+ ip add 172.16.32.33 255.255.255.252
+ no shut
+do wr
+
+ida
+
+ip route 172.16.0.0 255.255.224.0 g0/0/1
+
+vuelta
+
+ip route 172.16.32.0 255.255.255.224 g0/0/0
+
+config
+
+ip route 172.16.0.0 255.255.224.0 g0/0/1
+ip route 172.16.32.0 255.255.255.224 g0/0/0
+
+
+********************************************************************
+
+ROUTER 2
+
+R2
+
+enable
+config t
+hostname R2-AC
+banner motd $
+------------------------------
+NO INGRESE SIN AUTORIZACION
+------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+do wr
+
+int g0/0/0
+ description R2-AC -> R1-AC
+ ip add 172.16.32.34 255.255.255.252
+ no shut
+
+int g0/0/1
+ description R2-AC -> R3-AC
+ ip add 172.16.32.37 255.255.255.252
+ no shut
+do wr
+
+ida
+
+ip route 172.16.0.0 255.255.224.0 g0/0/1
+
+vuelta
+
+ip route 172.16.32.0 255.255.255.224 g0/0/0
+
+********************************************************************
+
+ROUTER 3
+
+R3
+
+enable
+config t
+hostname R3-AC
+banner motd $
+------------------------------
+NO INGRESE SIN AUTORIZACION
+------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+do wr
+
+int g0/0/0
+ description R3-AC -> R2-AC
+ ip add 172.16.32.38 255.255.255.252
+ no shut
+
+int g0/0/1
+ description R3-AC -> R4-AC
+ ip add 172.16.32.41 255.255.255.252
+ no shut
+do wr
+
+ida
+
+ip route 172.16.0.0 255.255.224.0 g0/0/1
+
+vuelta
+
+ip route 172.16.32.0 255.255.255.224 g0/0/0
+
+********************************************************************
+
+ROUTER 4
+
+R4
+
+enable
+config t
+hostname R4-AC
+banner motd $
+------------------------------
+NO INGRESE SIN AUTORIZACION
+------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+do wr
+
+int g0/0/0
+ description R4-AC -> R3-AC
+ ip add 172.16.32.42 255.255.255.252
+ no shut
+
+int g0/0/1
+ description GW DE LAN-2
+ ip add 172.16.0.1 255.255.224.0
+ no shut
+do wr
+
+ida
+
+ip route 172.16.0.0 255.255.224.0 g0/0/1
+
+vuelta
+
+ip route 172.16.32.0 255.255.255.224 g0/0/0
+
+*************************************************************************
+
+ipv4 desktop-1 172.16.32.2
+ipv4 desktop-2 172.16.32.3
+
+ipv4 server 172.16.31.253
+
+*********

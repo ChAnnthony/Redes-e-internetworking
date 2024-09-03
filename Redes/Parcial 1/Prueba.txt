@@ -1,0 +1,101 @@
+S1-P1
+enable
+configure t
+hostname S1-P1
+enable secret Prueba1REDES
+banner motd $
+------------------------------------
+No ingresar sin autorización 
+------------------------------------$
+
+do wr
+
+
+S2-P1
+enable
+configure t
+hostname S2-P2
+enable secret Prueba1REDES
+banner motd $
+------------------------------------
+No ingresar sin autorización 
+------------------------------------$
+do wr
+
+
+R1-ESPE
+enable
+configure t
+hostname R1-ESPE
+enable secret Prueba1REDES
+banner motd $
+------------------------------------
+No ingresar sin autorización 
+------------------------------------$
+do wr
+
+int g0/0/0
+description GW de LAN-1
+ip add 172.16.34.1 255.255.255.224
+no shutdown
+do wr
+
+int g0/0/1
+description GW de LAN-1
+ip add 172.16.32.1 255.255.254.0
+no shutdown
+do wr
+
+int s0/1/0
+description R1->R2
+ip add 172.16.34.33 255.255.255.252
+clock rate 4000000
+no shutdown
+do wr
+
+
+R2-ESPE
+enable
+configure t
+hostname R1-ESPE
+enable secret Prueba1REDES
+banner motd $
+-------------------------------------
+No ingresar sin autorización
+-------------------------------------$
+do wr
+
+int g0/0/0
+description GW 
+ip add 172.16.0.1 255.255.224.0
+no shutdown
+do wr
+
+int s0/1/0
+description R1->R2
+ip add 172.16.34.34 255.255.255.252
+no shutdown
+do wr
+
+R3-ESPE
+enable
+configure t
+hostname R1-ESPE
+enable secret Prueba1REDES
+banner motd $
+-------------------------------------
+No ingresar sin autorización
+-------------------------------------$
+do wr
+
+int g0/0/0
+description GW 
+ip add 172.16.0.1 255.255.224.0
+no shutdown
+do wr
+
+int s0/1/0
+description R1->R2
+ip add 172.16.34.34 255.255.255.252
+no shutdown
+do wr

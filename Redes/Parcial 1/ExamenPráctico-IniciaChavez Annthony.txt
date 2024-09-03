@@ -1,0 +1,134 @@
+S1-AC
+enable
+config t
+host name S1-AC
+banner motd $
+-------------------------------------------------
+NO INGRESAR SIN AUTORIZACION
+-------------------------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+do wr 
+
+
+S2-AC
+enable
+config t
+host name S2-AC
+banner motd $
+-------------------------------------------------
+NO INGRESAR SIN AUTORIZACION
+-------------------------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+do wr 
+
+
+R1-AC
+enable
+config t
+host name R1-AC
+banner motd $
+-------------------------------------------------
+NO INGRESAR SIN AUTORIZACION
+-------------------------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+
+int g0/0/0
+description GW LAN-1
+ip add 172.16.32.1 255.255.255.224
+no shut 
+
+int g0/0/1
+description R1-AC -> R2-AC
+ip add 172.16.32.33 255.255.255.252
+no shut 
+
+ip route 172.16.31.253 255.255.224.0 g0/0/1
+
+do wr 
+
+R2-AC
+enable
+config t
+host name R2-AC
+banner motd $
+-------------------------------------------------
+NO INGRESAR SIN AUTORIZACION
+-------------------------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+
+int g0/0/0
+description R2 -> R1
+ip add 172.16.32.34 255.255.255.252
+no shut 
+
+int g0/0/1
+description R2 -> R3
+ip add 172.16.32.37 255.255.255.252
+no shut 
+
+ip route 172.16.31.253 255.255.224.0 g0/0/1
+ip route 172.16.32.0 255.255.255.224 g0/0/0
+
+do wr 
+
+
+R3-AC
+enable
+config t
+host name R3-AC
+banner motd $
+-------------------------------------------------
+NO INGRESAR SIN AUTORIZACION
+-------------------------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+
+int g0/0/0
+description R3 -> R2
+ip add 172.16.32.38 255.255.255.252
+no shut 
+
+int g0/0/1
+description R3 -> R4
+ip add 172.16.32.41 255.255.255.252
+no shut 
+
+ip route 172.16.31.253 255.255.224.0 g0/0/1
+ip route 172.16.32.0 255.255.255.224 g0/0/0
+
+do wr 
+
+
+R4-AC
+enable
+config t
+host name R3-ESPE
+banner motd $
+-------------------------------------------------
+NO INGRESAR SIN AUTORIZACION
+-------------------------------------------------$
+enable secret Parcial1RED3S
+service password-encryption
+
+int g0/0/0
+description R4 -> R3
+ip add 172.16.32.45 255.255.255.252
+no shut 
+
+int g0/0/1
+description R4 -> LAN
+ip add 172.16.0.1 255.255.255.224
+no shut 
+
+ip route 172.16.32.0 255.255.255.224 g0/0/0
+
+do wr 
+
+
+
+show ip route
+show running-config
