@@ -1,0 +1,56 @@
+R1-WIFI
+enable 
+config t
+hostname R1
+
+ip dhcp excluded-address 192.168.0.1 192.168.0.5
+
+ip dhcp pool 
+network 192.168.100.0 255.255.255.128
+default-router 192.168.100.1
+dns-server 192.168.10.10
+
+do wr
+
+router ospf 1 
+ router-id 1.1.1.1 
+ network 192.168.0.73 0.0.0.3 area 0
+ do wr
+
+R2------
+enable 
+config t
+hostname R2
+
+int g0/0/0 
+ ip add 192.168.0.77 255.255.255.252
+no shut
+
+int g0/0/1 
+ ip add 192.168.0.74 255.255.255.252
+no shut
+
+router ospf 2 
+ router-id 2.2.2.2 
+ network 192.168.0.77 0.0.0.3 area 0
+ network 192.168.0.74 0.0.0.3 area 0
+ do wr
+
+R3----
+enable 
+config t
+hostname R2
+
+int g0/0/0 
+ ip add 192.168.0.78 255.255.255.252
+no shut
+
+int g0/0/1 
+ ip add 192.168.0.65 255.255.255.248
+no shut
+
+router ospf 3 
+ router-id 3.3.3.3 
+ network 192.168.0.78 0.0.0.3 area 0
+ network 192.168.0.65 0.0.0.7 area 0
+ do wr

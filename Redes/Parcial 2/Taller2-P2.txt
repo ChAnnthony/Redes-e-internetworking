@@ -1,0 +1,96 @@
+S1-P1
+enable
+config t
+host name S1-P1
+
+vlan 100
+name GERENCIA
+vlan 200
+name VENTAS
+vlan 99
+name ADMINISTRACION
+exit
+
+interface range fa0/10 -19
+switchport mode access
+switchport access vlan 100
+
+interface range fa0/20 -24
+switchport mode access
+switchport access vlan 200
+
+interface range fa0/5 -9
+switchport mode access
+switchport access vlan 99
+
+interface range g0/1 -2
+switchport mode trunk
+switchport trunk native vlan 1001
+
+do wr
+
+-----------------------------------------------------
+
+S2-P2
+enable
+config t
+host name S2-P2
+
+vlan 100
+name GERENCIA
+vlan 200
+name VENTAS
+vlan 99
+name ADMINISTRACION
+exit
+
+interface range g0/1 -2
+switchport mode trunk
+switchport trunk native vlan 1001
+
+do wr
+
+-----------------------------------------------------
+
+R1-P2
+enable
+config t
+host name R1-P2
+
+interface g0/0/1.100
+encapsulation dot1q 100
+ip add 172.16.100.129 255.255.255.192
+
+interface g0/0/1.200
+encapsulation dot1q 200
+ip add 172.16.100.1 255.255.255.128
+
+interface g0/0/1.99
+encapsulation dot1q 99
+ip add 192.168.100.1 255.255.255.0
+
+interface g0/0/1.1001
+encapsulation dot1q 1001 native
+
+no shut
+
+ip dhcp excluded-address 172.16.100.129 172.16.100.133
+ip dhcp excluded-address 172.16.100.1 172.16.100.5
+ip dhcp excluded-address 192.168.100.1 192.168.100.5
+
+ip dhcp pool GERENCIA 
+network 172.16.100.128 255.255.255.192
+default-router 172.16.100.129
+dns-server 8.8.8.8
+
+ip dhcp pool VENTAS 
+network 172.16.100.0 255.255.255.128
+default-router 172.16.100.1
+dns-server 8.8.8.8
+
+ip dhcp pool V99 
+network 192.168.100.0 255.255.255.0
+default-router 192.168.100.1
+dns-server 8.8.8.8
+
+do wr

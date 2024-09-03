@@ -1,0 +1,137 @@
+S2
+
+enable 
+config t
+hostname S2
+
+vlan 100
+ name GERENCIA
+vlan 200
+ name VENTAS
+exit
+
+int range fa0/10 -15
+ switchport mode access
+ switchport access vlan 100
+
+int range fa0/16 -20
+ switchport mode access
+ switchport access vlan 200
+
+int g0/1
+ switchport mode trunk 
+ switchport trunk native vlan 999
+
+do wr
+
+-----------------------------------------------------------------------------
+S1
+
+enable 
+config t
+hostname S1
+
+vlan 100
+ name GERENCIA
+vlan 200
+ name VENTAS
+vlan 10 
+ name ADMIN
+exit
+
+int range fa0/21 -24
+ switchport mode access
+ switchport access vlan 10
+
+int range g0/1, g0/2
+ switchport mode trunk 
+ switchport trunk native vlan 999
+
+int vlan 10
+ ip add 192.168.10.3 255.255.255.128
+ no shut
+
+ip default-gatway 192.168.10.1
+
+do wr
+
+----------------------------------------------------------------------
+R1
+
+enable 
+config t
+hostname R1
+
+int g0/0/0.100
+encap dot1q 100
+ip add 192.168.100.1 255.255.255.0
+int g0/0/0.200
+encap dot1q 200
+ip add 192.168.200.1 255.255.255.0
+int g0/0/0.100
+encap dot1q 10
+ip add 192.168.10.1 255.255.255.128
+int g0/0/0.999
+encap dot1q 999 native 
+int g0/0/0
+no shut 
+
+int g0/0/1
+ip add 10.10.10.1 255.255.255.252
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.100.0 0.0.0.255 area 0
+ network 192.168.200.0 0.0.0.255 area 0
+ network 192.168.10.0 0.0.0.127 area 0
+ network 10.10.10.0 0.0.0.3 area 0
+
+do wr
+
+int g0/0/0.100 
+ip helper-add 10.10.10.2
+int g0/0/0.200 
+ip helper-add 10.10.10.2
+int g0/0/0.10 
+ip helper-add 10.10.10.2
+
+do wr
+-----------------------------------------------------------------------
+R2
+
+enable 
+config t
+hostname R2
+
+int g0/0/0
+ip add 172.16.100.1 255.255.255.224
+no shut 
+
+int g0/0/1
+ip add 10.10.10.2 255.255.255.252
+
+router ospf 2
+ router-id 2.2.2.2
+ network 172.16.100.0 0.0.0.31 area 0
+ network 10.10.10.0 0.0.0.3 area 0
+
+ ip dhcp excluded-add 192.168.100.1 192.168.100.5
+ ip dhcp excluded-add 192.168.200.1 192.168.200.5
+ ip dhcp excluded-add 192.168.10.1 192.168.10.5
+
+ip dhcp pool V100
+ network 192.168.100.0 255.255.255.0
+ default-router 192.168.100.1
+ dns-server 8.8.8.8
+
+ip dhcp pool V200
+ network 192.168.200.0 255.255.255.0
+ default-router 192.168.100.1
+ dns-server 8.8.8.8
+
+ip dhcp pool V10
+ network 192.168.10.0 255.255.255.128
+ default-router 192.168.10.1
+ dns-server 8.8.8.8
+
+do wr

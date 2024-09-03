@@ -1,0 +1,568 @@
+*******************************************************************
+			MATRIZ-QUITO
+
+*******************************************************************
+
+Switch 1
+
+S1-MATRIZ-UIO
+
+enable
+config t
+hostname S1-MATRIZ-UIO
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range g0/1, fa0/1 -4
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+*******************************************************************
+Switch 2
+
+S2-MATRIZ-UIO
+
+enable
+config t
+hostname S2-MATRIZ-UIO
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range g0/2, fa0/1 -4
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+*******************************************************************
+
+Switch 2
+
+S2-MATRIZ-UIO-JUR
+
+enable
+config t
+hostname S2-MATRIZ-UIO-JUR
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range fa0/5 -10
+switchport mode access
+switchport access vlan 8
+
+int range fa0/1,fa0/6
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+*******************************************************************
+Switch 3
+
+S3-MATRIZ-UIO-ADMIN
+
+enable
+config t
+hostname S3-MATRIZ-UIO-ADMIN
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range fa0/11 -16
+switchport mode access
+switchport access vlan 4
+
+int range fa0/2,fa0/7
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+*******************************************************************
+Switch 4
+
+S4-MATRIZ-UIO-TI
+
+enable
+config t
+hostname S4-MATRIZ-UIO-TI
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range fa0/17 -21
+switchport mode access
+switchport access vlan 22
+
+int range fa0/3,fa0/8
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+*******************************************************************
+Switch 5
+
+S5-MATRIZ-UIO-FINAN
+
+enable
+config t
+hostname S5-MATRIZ-UIO-FINAN
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range fa0/22 -24
+switchport mode access
+switchport access vlan 19
+
+int range fa0/4,fa0/9
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+*******************************************************************
+Router 1
+
+R1-MATRIZ-UIO
+
+enable
+config t 
+hostname R1-MATRIZ-UIO
+
+int g0/0/0.4
+ encapsulation dot1q 4
+ ip add 192.168.0.129 255.255.255.224
+int g0/0/0.8
+ encapsulation dot1q 8
+ ip add 192.168.1.33 255.255.255.240
+int g0/0/0.22
+ encapsulation dot1q 22
+ ip add 192.168.0.241 255.255.255.240
+int g0/0/0.19
+ encapsulation dot1q 19
+ ip add 192.168.0.193 255.255.255.240
+int g0/0/0.17
+ encapsulation dot1q 17 native
+int g0/0/0
+no shut
+
+int g0/0/1.4
+ encapsulation dot1q 4
+ ip add 192.168.0.129 255.255.255.224
+int g0/0/1.8
+ encapsulation dot1q 8
+ ip add 192.168.1.33 255.255.255.240
+int g0/0/1.22
+ encapsulation dot1q 22
+ ip add 192.168.0.241 255.255.255.240
+int g0/0/1.19
+ encapsulation dot1q 19
+ ip add 192.168.0.193 255.255.255.240
+int g0/0/1.17
+ encapsulation dot1q 17 native
+int g0/0/1
+no shut
+
+ip dhcp excluded-address 192.168.1.33 192.168.1.38 
+ip dhcp excluded-address 192.168.0.129 192.168.0.138
+ip dhcp excluded-address 192.168.0.241 192.168.0.244
+ip dhcp excluded-address 192.168.0.193 192.168.0.199
+
+ip dhcp pool JURIDICO
+ network 192.168.1.32 255.255.255.240
+ default-router 192.168.1.33
+ dns-server 192.168.0.242  
+ip dhcp pool ADMINISTRATIVA
+ network 192.168.0.128 255.255.255.224
+ default-router 192.168.0.129
+ dns-server 192.168.0.242
+ip dhcp pool DEP_TI_MATRIZ-UIO
+ network 192.168.0.240 255.255.255.240
+ default-router 192.168.0.241
+ dns-server 192.168.0.242
+ip dhcp pool FINANCIERO
+ network 192.168.0.192 255.255.255.240
+ default-router 192.168.0.193
+ dns-server 192.168.0.242
+do wr
+
+*******************************************************************
+			SUCURSAL-GYE
+
+*******************************************************************
+Switch 1
+
+S1-GYE-MARK
+
+enable
+config t
+hostname S1-GYE-MARK
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 2
+ name MARKETING
+vlan 12
+ name BODEGA
+vlan 22
+ name DEP_TI
+exit
+
+int range fa0/4 -10
+switchport mode access
+switchport access vlan 2
+
+int range fa0/1
+switchport mode trunk
+switchport trunk native vlan 17
+
+do wr
+
+*******************************************************************
+Switch 2
+
+S2-GYE-BODE
+
+enable
+config t
+hostname S2-GYE-BODE
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 2
+ name MARKETING
+vlan 12
+ name BODEGA
+vlan 22
+ name DEP_TI
+exit
+
+int range fa0/11 -19
+switchport mode access
+switchport access vlan 12
+
+int range fa0/2
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+*******************************************************************
+Switch 3
+
+S3-GYE-TI
+
+enable
+config t
+hostname S3-GYE-BODE
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 2
+ name MARKETING
+vlan 12
+ name BODEGA
+vlan 22
+ name DEP_TI
+exit
+
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 22
+
+int range fa0/3
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+*********************************************************************
+MLS-SUC-GYE
+
+enable
+config t
+hostname MLS-SUC-GYE
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 2
+ name MARKETING
+vlan 12
+ name BODEGA
+vlan 22
+ name DEP_TI
+exit
+
+int range fa0/1 -3
+ switchport trunk encap dot1q
+ switchport mode trunk
+ switchport trunk native vlan 17
+
+ip routing
+
+int vlan 2
+ description VLAN2
+ ip add 192.168.0.209 255.255.255.240
+int vlan 12
+ description VLAN12
+ ip add 192.168.0.161 255.255.255.224
+int vlan 22
+ description VLAN22
+ ip add 192.168.0.225 255.255.255.240
+no shut
+
+ip dhcp excluded-address 192.168.0.209 192.168.0.211
+ip dhcp excluded-address 192.168.0.161 192.168.0.165
+ip dhcp excluded-address 192.168.0.225 192.168.0.228
+
+ip dhcp pool MARKETING
+ network 192.168.0.208 255.255.255.240
+ default-router 192.168.0.209
+ dns-server 192.168.0.226  
+ip dhcp pool BODEGA
+ network 192.168.0.160 255.255.255.224
+ default-router 192.168.0.161
+ dns-server 192.168.0.226
+ip dhcp pool TI-GYE
+ network 192.168.0.224 255.255.255.240
+ default-router 192.168.0.225
+ dns-server 192.168.0.226   
+
+do wr
+
+*******************************************************************
+			SUCURSAL-CUEN
+
+*******************************************************************
+Switch 1
+
+S1-CUEN-VEN
+
+enable
+config t
+hostname S1-CUEN-VEN
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 10
+ name VENTAS
+vlan 22
+ name DEP_TI_CUEN
+vlan 107
+ name SERV_CLIENTE
+exit
+
+int range fa0/4 -15
+switchport mode access
+switchport access vlan 10
+
+int range fa0/1
+switchport mode trunk
+switchport trunk native vlan 17
+
+do wr
+
+*******************************************************************
+Switch2
+
+S2-CUEN-TI
+
+enable
+config t
+hostname S2-CUEN-TI
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 10
+ name VENTAS
+vlan 22
+ name DEP_TI_CUEN
+vlan 107
+ name SERV_CLIENTE
+exit
+
+int range fa0/16 -20
+switchport mode access
+switchport access vlan 10
+
+int range fa0/2
+switchport mode trunk
+switchport trunk native vlan 17
+
+do wr
+
+*************************************************************
+Switch 3
+
+S3-SERV-CLIENTE
+
+enable
+config t
+hostname S3-SERV-CLIENTE
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 10
+ name VENTAS
+vlan 22
+ name DEP_TI_CUEN
+vlan 107
+ name SERV_CLIENTE
+exit
+
+int range fa0/21 -24
+switchport mode access
+switchport access vlan 107
+
+int range fa0/3
+switchport mode trunk
+switchport trunk native vlan 17
+
+do wr
+
+*************************************************************
+MLS-SUC-CUEN
+
+enable
+config t
+hostname MLS-SUC-CUEN
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE SIN AUTORIZACION
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 10
+ name VENTAS
+vlan 22
+ name DEP_TI_CUEN
+vlan 107
+ name SERV_CLIENTE
+exit
+
+int range fa0/1 -3
+ switchport trunk encap dot1q
+ switchport mode trunk
+ switchport trunk native vlan 17
+
+ip routing
+
+int vlan 10
+ description VLAN10
+ ip add 192.168.0.1 255.255.255.128
+int vlan 22
+ description VLAN22
+ ip add 192.168.1.1 255.255.255.240
+int vlan 107
+ description VLAN107
+ ip add 192.168.1.17 255.255.255.240
+no shut
+
+ip dhcp excluded-address 192.168.0.1 192.168.0.10
+ip dhcp excluded-address 192.168.1.1 192.168.1.3
+ip dhcp excluded-address 192.168.1.17 192.168.1.19
+
+ip dhcp pool MARKETING
+ network 192.168.0.0 255.255.255.128
+ default-router 192.168.0.1
+ dns-server 192.168.0.226  
+ip dhcp pool BODEGA
+ network 192.168.1.0 255.255.255.240
+ default-router 192.168.1.1
+ dns-server 192.168.0.226
+ip dhcp pool TI-GYE
+ network 192.168.1.16 255.255.255.240
+ default-router 192.168.1.17
+ dns-server 192.168.0.226   
+
+do wr
+******************************************************************************
+EMAIL
+M-Juridico
+M-Administrativa
+M-DepTI
+M-Financiero
+G-Marketing
+G-Bodega
+G-DepTI
+C-Ventas
+C-DepTI
+C-ServiCliente

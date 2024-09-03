@@ -1,0 +1,165 @@
+S2
+enable 
+config t
+hostname S2
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name FINANCIERA
+exit
+
+interface range fa0/10 -19
+ switchport mode access
+ switchport access vlan 10
+interface range fa0/20 -24
+ switchport mode access
+ switchport access vlan 20
+
+int g0/2                  
+ switchport mode trunk
+ switchport trunk native vlan 700
+do wr
+
+----------------------------------------------------------------------------
+
+S1
+enable 
+config t
+hostname S1
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name FINANCIERA
+exit
+
+interface range fa0/10 -19
+ switchport mode access
+ switchport access vlan 10
+interface range fa0/20 -24
+ switchport mode access
+ switchport access vlan 20
+int range g0/1, g0/2
+ switchport mode trunk
+ switchport trunk native vlan 700
+
+
+do wr
+
+
+comandos para verificar (Vlan creadas y asignacion de pueros )
+------------------------
+do show vlan brief
+do show int trunk (indica puertos trunk)
+
+----------------------------------------------------------------------------
+
+R1
+enable 
+config t
+hostname R1-ROAS
+
+int s0/1/0
+description R1-ISP
+ip add 5.5.5.1 255.255.255.252
+no shut
+
+int g0/0/1.10
+ description GW V10
+ encapsulation dot1q 10
+ ip add 172.16.2.129 255.255.255.192
+int g0/0/1.20
+ description GW V20
+ encapsulation dot1q 20
+ ip add 172.16.2.1 255.255.255.128
+int g0/0/1.700
+description NATIVA 700
+ encapsulation dot1q 700 native
+int g0/0/1
+ no shut
+
+ip dhcp excluded-address 172.16.2.129 172.16.2.131
+ip dhcp excluded-address 172.16.2.1 172.16.2.3
+
+
+ip dhcp pool GERENCIA
+ network 172.16.2.128 255.255.255.192
+ default-router 172.16.2.129
+ dns-server 172.16.2.194
+ip dhcp pool FINANCIERO
+ network 172.16.2.0 255.255.255.128
+ default-router 172.16.2.1
+ dns-server 172.16.2.194
+
+
+ip route 172.16.0.0 255.255.254.0 S0/1/0
+ip route 172.16.2.192 255.255.255.224 S0/1/0
+
+do wr
+
+----------------------------------------------------------------------------
+
+ISP
+enable 
+config t
+hostname ISP
+
+int s0/1/0
+description R1-R2
+ip add 5.5.5.2 255.255.255.252
+clock rate 400000
+no shut
+
+int g0/0/1
+description ISP-MLS
+ip add 7.7.7.1 255.255.255.252
+no shut
+
+ip route 172.16.2.128 255.255.255.192 s0/1/0
+ip route 172.16.2.0 255.255.255.128 s0/1/0
+ip route 172.16.0.0 255.255.254.0 g0/0/1
+ip route 172.16.2.192 255.255.255.224 g0/0/1
+
+do wr
+
+----------------------------------------------------------------------------
+MLS
+enable 
+config t
+hostname MLS
+
+vlan 100
+ name VENTAS
+vlan 200
+ name TI
+exit
+
+interface range fa0/10 -19
+ switchport mode access
+ switchport access vlan 100
+interface range fa0/20 -24
+ switchport mode access
+ switchport access vlan 200
+
+ip routing 
+
+int g0/1 
+ description PUERTO ENRUTADO --> ISP
+ no switchport
+ ip add 7.7.7.2 255.255.255.252
+ no shut
+
+int vlan 100
+ description SVI 100
+ ip add 172.16.0.1 255.255.254.0
+ no shut
+int vlan 200
+ description SVI 200
+ ip add 172.16.2.193 255.255.255.224
+ no shut
+
+ip route 172.16.2.128 255.255.255.192 g0/1
+ip route 172.16.2.0 255.255.255.128 g0/1
+
+do wr

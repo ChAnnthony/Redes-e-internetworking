@@ -1,0 +1,220 @@
+S2 - KA
+
+enable 
+config t
+hostname S2-KA
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name VENTAS
+exit
+
+interface range fa0/24           
+ switchport mode trunk
+ switchport trunk native vlan 70
+do wr
+
+---------------------------------------------------------------------
+
+S1 - KA
+
+enable 
+config t
+hostname S1-KA
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name VENTAS
+exit
+
+interface range fa0/10 -15
+ switchport mode access
+ switchport access vlan 10
+interface range fa0/16 -20
+ switchport mode access
+ switchport access vlan 20
+
+int range fa0/24, fa0/1         
+ switchport mode trunk
+ switchport trunk native vlan 70
+do wr
+
+---------------------------------------------------------------------
+
+S3 - KA
+
+enable 
+config t
+hostname S3-KA
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name VENTAS
+exit
+
+int range g0/1, fa0/1         
+ switchport mode trunk
+ switchport trunk native vlan 70
+do wr
+
+---------------------------------------------------------------------
+
+R1- KA
+
+enable 
+config t
+hostname R1-KA
+
+int g0/0/0
+description R1 -> R2
+ip add 192.168.3.129 255.255.255.252
+no shut
+
+int g0/0/1.10
+description GW de VLAN10
+encapsulation dot1q 10
+ip add 192.168.3.65 255.255.255.192
+int g0/0/1.20
+description GW de VLAN20
+encapsulation dot1q 20
+ip add 192.168.2.1 255.255.255.0
+
+int g0/0/1.70
+description VLAN70 native
+encapsulation dot1q 70 native
+
+int g0/0/1
+no shut
+
+ip dhcp excluded-add 192.168.3.65 192.168.3.70 
+ip dhcp excluded-add 192.168.2.1 192.168.2.5
+
+ip dhcp pool GERENCIA
+network 192.168.3.64 255.255.255.192
+default-route 192.168.3.65 
+dns-server 192.168.3.10
+
+ip dhcp pool VENTAS
+network 192.168.2.0 255.255.255.0
+default-route 192.168.2.1 
+dns-server 192.168.3.10
+
+ip route 192.168.0.0 255.255.255.0 g0/0/0
+ip route 192.168.3.0 255.255.255.192 g0/0/0
+
+do wr
+
+---------------------------------------------------------------------
+
+R2- KA
+
+enable 
+config t
+hostname R2-KA
+
+int g0/0/0
+description R2 -> R1
+ip add 192.168.3.130 255.255.255.252
+no shut
+
+int g0/0/1
+description R2 -> MLS
+ip add 192.168.3.133 255.255.255.252
+no shut
+
+ip route 192.168.0.0 255.255.254.0 g0/0/1
+ip route 192.168.3.0 255.255.255.192 g0/0/1
+ip route 192.168.2.0 255.255.255.0 g0/0/0
+ip route 192.168.3.64 255.255.255.192 g0/0/0
+do wr
+
+
+
+ ---------------------------------------------------------------------
+S - KA
+
+enable 
+config t
+hostname S-KA
+
+vlan 100
+ name DC
+vlan 200
+ name TI
+exit
+
+interface range fa0/5 -10
+ switchport mode access
+ switchport access vlan 100
+interface range fa0/11 -20
+ switchport mode access
+ switchport access vlan 200
+
+interface range fa0/24           
+ switchport mode trunk
+ switchport trunk native vlan 70
+do wr
+
+ 
+
+-----------------------------------------
+MLS
+
+enable 
+config t
+hostname MLS
+
+vlan 101
+ name DC
+vlan 200
+ name TI
+exit
+
+int range  fa0/24 
+ switchport trunk encap dot1q 
+ switchport mode trunk
+ switchport trunk native vlan 70
+do wr
+
+ip routing
+
+int g0/1
+description MLS ->R2
+no switchport 
+ip add 192.168.3.134 255.255.255.252
+no shut
+
+int vlan 100
+ description SVI VLAN100
+ ip add 192.168.3.1 255.255.255.192
+int vlan 200
+ description SVI VLAN200
+ ip add 192.168.0.1 255.255.254.0
+no shut
+
+ip dhcp excluded-address 192.168.3.1 192.168.3.5
+ip dhcp excluded-address 192.168.0.1 192.168.0.5
+
+ip dhcp pool DC
+ network 192.168.3.0 255.255.255.192
+ default-router 192.168.3.1
+ dns-server 192.168.3.10  
+ip dhcp pool TI
+ network 192.168.0.0 255.255.254.0
+ default-router 192.168.0.1
+ dns-server 192.168.3.10  
+
+ip route 192.168.3.64 255.255.255.192 g0/1
+ip route 192.168.2.0 255.255.255.0 g0/1
+
+do wr
+
+
+
+
+
+
+

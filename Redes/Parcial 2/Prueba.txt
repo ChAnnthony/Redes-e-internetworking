@@ -1,0 +1,188 @@
+-------------------------------Formulario.html-------------------------------
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Página</title>
+  <link rel="stylesheet" type="text/css" href="estilo.css">
+</head>
+<body>
+  <center><h1>Bienvenido a la Página </h1></center>
+  <center><h1>Inicio de sesion</h1></center>
+
+  <div class="container">
+    <div class="form-box">
+        <form id="formulario" method="POST" action="contenido.html" >
+        <center><h2>Datos del usuario</h2></center><br>
+        <label for="usuario">Usuario:</label>
+        <input type="text" id="usuario" name="usuario" required>
+
+        <label for="contrasena">Contraseña:</label>
+        <input type="password" id="contrasena" name="contrasena" required>
+
+        <br><br><input type="submit" value="Iniciar sesión">
+      </form>
+      <script src="app.js"></script>
+    </div>
+  </div>
+</body>
+</html>
+-------------------------------estilo.css-------------------------------
+body {
+    background-image: url('fondo.jpg');
+    background-repeat: no-repeat;
+    background-size: cover; 
+    background-color: #1da7a7;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+}
+
+.form-box {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+}
+
+form {
+  margin-top: 20px;
+}
+
+label {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+input[type="text"], input[type="password"] {
+  width: 250px;
+  padding: 10px;
+}
+
+input[type="submit"] {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: #ffffff;
+  border: none;
+}
+-------------------------------app.js-------------------------------
+const formulario = document.getElementById('formulario');
+formulario.addEventListener('submit', (e) => {
+    e.preventDefault();
+    fetch('https://sheet.best/api/sheets/b13ff167-2cef-4b97-9783-e094b9196eb6', {
+        method: "POST",
+        mode: "cors",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+
+            "usuario": formulario["usuario"].value,
+            "contrasena": formulario["contrasena"].value,
+
+        }),
+        })
+        /*<!--.then(respuesta => {
+            if (respuesta.ok) {
+                alert('Información guardada');
+            } else {
+                alert('Error');
+            }
+    });-->*/
+});
+-------------------------------contenido.html-------------------------------
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="box">Contenedor 1
+      <h2>Los estilos avanzados</h2>
+      <p>Son técnicas y características de CSS que permiten lograr diseños y efectos más complejos y sofisticados en una página web.</p>
+      <p>El estilo avanzado utiliza las propiedades `display`, `justify-content` y `align-items` para centrar vertical y horizontalmente el contenido dentro de un contenedor. Esto permite lograr diseños más avanzados y personalizados en una página web.</p>
+    </div>
+    <div class="box">Contenedor 2
+      <h2>Seguridad</h2>
+      <p>La seguridad en páginas web se refiere a las medidas y prácticas implementadas para proteger la integridad, confidencialidad y disponibilidad de la información y los usuarios en un sitio web, evitando ataques, vulnerabilidades y accesos no autorizados.</p>
+      <p>Ventajas de la seguridad en páginas web:</p>
+      <p>
+                    1. Protección de datos sensibles: Garantiza la confidencialidad de información personal y financiera de los usuarios.
+                    2. Prevención de ataques cibernéticos: Ayuda a evitar intrusiones, inyección de código malicioso y otras amenazas que puedan comprometer el sitio web.
+                    3. Mantenimiento de la reputación: Una página web segura genera confianza en los usuarios, lo que puede mejorar la reputación y la relación con los clientes.
+                    4. Disponibilidad del sitio: Minimiza el riesgo de caídas o interrupciones del sitio web debido a ataques o vulnerabilidades.
+      </p> 
+    </div>
+  </div>
+  <div class="container">
+    <div class="box">Contenedor 3
+      <h2>Flexbox/Grid</h2>
+      <p>
+      Flexbox (Flexible Box) es un modelo de diseño unidimensional que se utiliza para organizar y alinear elementos en una sola dirección, ya sea horizontal o vertical. Se utiliza principalmente para diseñar componentes flexibles dentro de un contenedor, lo que facilita la creación de diseños adaptables a diferentes tamaños de pantalla.
+      </p>
+      <p>
+      Grid (CSS Grid Layout) es un sistema de diseño bidimensional que permite dividir el espacio de una página web en filas y columnas. Con Grid, se pueden colocar elementos en cualquier posición del diseño, lo que brinda un mayor control y flexibilidad en la organización de contenido. Es especialmente útil para crear diseños complejos con múltiples áreas y alinear elementos en diferentes ubicaciones.
+      </p>
+    </div>
+    <div class="box">Contenedor 4
+      <h2>Plantillas</h2>
+                <p>Las plantillas en el desarrollo web son archivos pre-diseñados que contienen la estructura, la apariencia y el estilo de una página web. Estas plantillas se pueden personalizar para adaptarse a las necesidades específicas de un sitio web y se utilizan como una forma de acelerar el proceso de desarrollo.
+                </p>
+                <p>Ventajas de las plantillas en el desarrollo web:</p>
+                <p>
+                    1. Ahorro de tiempo: Las plantillas permiten ahorrar tiempo y esfuerzo en el diseño y desarrollo de una página web, ya que gran parte del trabajo ya está hecho.
+                    2. Consistencia: Las plantillas aseguran que la apariencia y estructura de la página web sean consistentes en todas las páginas, lo que mejora la experiencia del usuario.
+                    3. Personalización: Las plantillas pueden ser personalizadas para adaptarse a las necesidades específicas de un sitio web, lo que permite crear diseños únicos y personalizados.
+                    4. Ahorro de costos: El uso de plantillas puede reducir los costos asociados con el diseño y desarrollo de una página web, ya que no es necesario contratar a un diseñador o desarrollador desde cero.
+                </p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="box">Contenedor 5
+      <h2>Responsive web desing</h2>
+                <p>Responsive Web Design (Diseño Web Responsivo) es un enfoque de diseño y desarrollo de sitios web que busca crear una experiencia óptima para los usuarios en cualquier dispositivo o tamaño de pantalla.</p>
+                <p>En lugar de crear múltiples versiones del mismo sitio web para diferentes dispositivos (como escritorio, tableta y móvil), el diseño web responsivo utiliza técnicas como la adaptación de diseño, la reorganización y el ajuste automático de contenido para que se vea y funcione bien en todos los dispositivos.</p>
+                <p>El objetivo principal del diseño web responsivo es garantizar que los usuarios puedan acceder y navegar por el contenido de manera fácil y efectiva, independientemente del dispositivo que estén utilizando. Esto implica utilizar técnicas como el uso de rejillas flexibles, imágenes escalables, fuentes adaptables y medios consultas CSS para adaptar el diseño y la apariencia del sitio web según las características del dispositivo.</p>
+            </p>
+    </div>
+    <div class="box">Contenedor 6
+      <h2>Sintaxis</h2>
+                <p>La sintaxis se refiere a las reglas y estructuras gramaticales que se deben seguir en un lenguaje de programación o en cualquier otro lenguaje formal. Estas reglas definen cómo se deben organizar y combinar los elementos del lenguaje para formar instrucciones válidas.</p>
+                <p>En el contexto de la programación, la sintaxis se refiere a las reglas gramaticales que rigen la forma en que se escriben los programas. Esto incluye aspectos como la estructura de las sentencias, el uso adecuado de los caracteres y signos de puntuación, la colocación correcta de los elementos del código y la forma en que se combinan para formar instrucciones coherentes.</p>
+                <p>El cumplimiento de la sintaxis es fundamental para que un programa sea válido y pueda ser interpretado correctamente por el compilador o intérprete del lenguaje. Si se cometen errores de sintaxis, el programa puede no funcionar o producir resultados inesperados.</p>
+           
+    </div>
+  </div>
+</body>
+</html>
+-------------------------------style.css-------------------------------
+body {
+    background-color: #f7fbfc;
+    background-image: url('fondo.jpg');
+    background-repeat: no-repeat;
+    background-size: cover; 
+}
+
+.container {
+  display: flex;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  margin: 25px;
+}
+
+.box {
+  background-color: #FFFFFF;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  border: 3px solid #000; /* Aquí defines el grosor y el color de la línea */
+}
+
+.box p {
+  margin: 20px;
+}

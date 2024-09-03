@@ -1,0 +1,358 @@
+Router 1
+
+R1-MATRIZ-UIO
+enable
+config t 
+hostname R1-MATRIZ-UIO
+
+interface g0/0/0
+ description Conexión a R1
+ encapsulation dot1q 17 native
+ ip address 192.168.17.3 255.255.255.0
+ no shut
+
+interface g0/0/0.4
+ description Conexión a VLAN 4
+ encapsulation dot1q 4
+ ip address 192.168.0.130 255.255.255.224
+ no shut
+
+interface g0/0/0.8
+ description Conexión a VLAN 8
+ encapsulation dot1q 8
+ ip address 192.168.1.34 255.255.255.240
+ no shut
+
+interface g0/0/0.22
+ description Conexión a VLAN 22
+ encapsulation dot1q 22
+ ip address 192.168.0.242 255.255.255.240
+ no shut
+profile picture
+tambien tengo estos errores: hsrp 1 y priority 10
+
+Tienes razón, hay un error en la configuración de HSRP. La línea hsrp 1 debería ser hsrp 2. Esto se debe a que el grupo HSRP 1 ya está en uso por el router 1.
+
+La configuración correcta para el router 2 es la siguiente:
+
+interface g0/0/0
+ description Conexión a R1
+ encapsulation dot1q 17 native
+ ip address 192.168.17.3 255.255.255.0
+ no shut
+
+interface g0/0/0.4
+ description Conexión a VLAN 4
+ encapsulation dot1q 4
+ ip address 192.168.0.130 255.255.255.224
+ no shut
+
+interface g0/0/0.8
+ description Conexión a VLAN 8
+ encapsulation dot1q 8
+ ip address 192.168.1.34 255.255.255.240
+ no shut
+
+interface g0/0/0.22
+ description Conexión a VLAN 22
+ encapsulation dot1q 22
+ ip address 192.168.0.242 255.255.255.240
+ no shut
+
+interface g0/0/0.17
+ description Interfaz nativa
+ encapsulation dot1q 17 native
+ ip address 192.168.17.2 255.255.255.0
+ no shut
+
+hsrp 2
+ip address 192.168.17.254 255.255.255.0
+priority 20
+
+ip dhcp excluded-address 192.168.1.33 192.168.1.38 
+ip dhcp excluded-address 192.168.0.129 192.168.0.138
+ip dhcp excluded-address 192.168.0.241 192.168.0.244
+ip dhcp excluded-address 192.168.0.193 192.168.0.199
+
+	
+
+ip dhcp pool JURIDICO
+ network 
+192.168.1.32 255.255.255.240
+ default-router 192.168.1.33
+ dns-server 192.168.0.242  
+ip dhcp pool ADMINISTRATIVA
+ network 
+192.168.0.128 255.255.255.224
+ default-router 192.168.0.129
+ dns-server 192.168.0.242
+ip dhcp pool DEP_TI_MATRIZ-UIO
+ network 
+192.168.0.240 255.255.255.240
+ default-router 192.168.0.241
+ dns-server 192.168.0.242
+ip dhcp pool FINANCIERO
+ network 
+192.168.0.192 255.255.255.240
+ default-router 192.168.0.193
+ dns-server 192.168.0.242
+do wr
+----------------------------------------------------------------------------
+Router 2
+
+R2-MATRIZ-UIO
+enable
+config t 
+hostname R1-MATRIZ-UIO
+
+interface g0/0/0
+ description Conexión a R2
+ encapsulation dot1q 17 native
+ ip address 192.168.17.1 255.255.255.0
+ no shut
+
+interface g0/0/0.4
+ description Conexión a VLAN 4
+ encapsulation dot1q 4
+ ip address 192.168.0.129 255.255.255.224
+ no shut
+
+interface g0/0/0.8
+ description Conexión a VLAN 8
+ encapsulation dot1q 8
+ ip address 192.168.1.33 255.255.255.240
+ no shut
+
+interface g0/0/0.22
+ description Conexión a VLAN 22
+ encapsulation dot1q 22
+ ip address 192.168.0.241 255.255.255.240
+ no shut
+
+interface g0/0/0.19
+ description Conexión a VLAN 19
+ encapsulation dot1q 19
+ ip address 192.168.0.193 255.255.255.240
+ no shut
+
+interface g0/0/0.17
+ description Interfaz nativa
+ encapsulation dot1q 17 native
+ ip address 192.168.17.2 255.255.255.0
+ no shut
+
+hsrp 1
+ip address 192.168.17.254 255.255.255.0
+priority 10
+
+ip dhcp excluded-address 192.168.1.33 192.168.1.38 
+ip dhcp excluded-address 192.168.0.129 192.168.0.138
+ip dhcp excluded-address 192.168.0.241 192.168.0.244
+ip dhcp excluded-address 192.168.0.193 192.168.0.199
+
+	
+
+ip dhcp pool JURIDICO
+ network 
+192.168.1.32 255.255.255.240
+ default-router 192.168.1.33
+ dns-server 192.168.0.242  
+ip dhcp pool ADMINISTRATIVA
+ network 
+192.168.0.128 255.255.255.224
+ default-router 192.168.0.129
+ dns-server 192.168.0.242
+ip dhcp pool DEP_TI_MATRIZ-UIO
+ network 
+192.168.0.240 255.255.255.240
+ default-router 192.168.0.241
+ dns-server 192.168.0.242
+ip dhcp pool FINANCIERO
+ network 
+192.168.0.192 255.255.255.240
+ default-router 192.168.0.193
+ dns-server 192.168.0.242
+do wr
+----------------------------------------------------------------------------
+Switch 1
+
+S1-MATRIZ-UIO
+
+enable
+config t
+hostname S1-MATRIZ-UIO
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE 
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range g0/1, fa0/1 -4
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+----------------------------------------------------------------------------
+Switch 1
+
+S1-MATRIZ-UIO
+
+enable
+config t
+hostname S1-MATRIZ-UIO
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE 
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range g0/1, fa0/6 -9
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+----------------------------------------------------------------------------
+Switch 2
+
+S2-MATRIZ-UIO-JUR
+
+enable
+config t
+hostname S2-MATRIZ-UIO-JUR
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE 
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range fa0/5 -10
+switchport mode access
+switchport access vlan 8
+
+int range fa0/1
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+----------------------------------------------------------------------------
+Switch 3
+
+S3-MATRIZ-UIO-ADMIN
+
+enable
+config t
+hostname S3-MATRIZ-UIO-ADMIN
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE 
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range fa0/11 -16
+switchport mode access
+switchport access vlan 4
+
+int range fa0/2
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+----------------------------------------------------------------------------
+Switch 4
+
+S4-MATRIZ-UIO-TI
+
+enable
+config t
+hostname S4-MATRIZ-UIO-TI
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE 
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range fa0/17 -21
+switchport mode access
+switchport access vlan 22
+
+int range fa0/3
+switchport mode trunk
+switchport trunk native vlan 17
+do wr
+
+----------------------------------------------------------------------------
+Switch 5
+
+S5-MATRIZ-UIO-FINAN
+
+enable
+config t
+hostname S5-MATRIZ-UIO-FINAN
+banner motd $
+- - - - - - - - - - - - - - - - - - - -
+NO INGRESE 
+- - - - - - - - - - - - - - - - - - -$
+
+vlan 8
+ name JURIDICO
+vlan 4
+ name ADMINISTRATIVA
+vlan 22
+ name DEP_TI
+vlan 19
+ name FINANCIERO
+exit
+
+int range fa0/22 -24
+switchport mode access
+switchport access vlan 19
+
+int range fa0/4
+switchport mode trunk
+switchport trunk native vlan 17
+do wr

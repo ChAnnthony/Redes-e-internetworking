@@ -1,0 +1,84 @@
+S1-P1
+enable
+config t
+hostname S1-P1
+
+vlan10
+name GERENCIA
+vlan20 
+name VENTAS
+vlan 1000
+name RRHH
+
+exit
+
+interface range f0/10 -15
+switchport mode access
+switchport access  vlan 10
+
+interface range f0/16 -20
+switchport mode access
+switchport access  vlan 20
+
+interface range f0/21 -24
+switchport mode access
+switchport access  vlan 100
+
+interface range f0/1 -5
+switchport mode trunk
+switchport trunk native vlan 999
+ 
+do wr
+
+S3-P3
+enable
+config t
+hostname S3-P3
+
+vlan10
+name GERENCIA
+vlan20 
+name VENTAS
+vlan 1000
+name RRHH
+
+exit
+
+interface range f0/10 -15
+switchport mode access
+switchport access  vlan 10
+
+interface range f0/16 -20
+switchport mode access
+switchport access  vlan 20
+
+interface range f0/21 -24
+switchport mode access
+switchport access  vlan 100
+ 
+interface range f0/1 -5
+switchport mode trunk
+switchport trunk native vlan 999
+
+do wr
+
+
+S2-P2
+enable
+config t
+hostname S2-P2
+
+vlan10
+name GERENCIA
+vlan20 
+name VENTAS
+vlan 1000
+name RRHH
+
+exit
+
+interface range f0/1 -5
+switchport mode trunk
+switchport trunk native vlan 999
+
+do wr

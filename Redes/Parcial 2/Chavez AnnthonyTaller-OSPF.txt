@@ -1,0 +1,263 @@
+S1
+
+enable 
+config t
+hostname S1
+
+vlan 100
+name GERENCIA
+vlan 200
+name VENTAS
+exit
+
+int range fa0/10 -19
+switchport mode access
+switchport access vlan 100
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 200
+
+int g0/1 
+switchport mode trunk
+switchport trunk native vlan 777
+
+do wr
+
+----------------------------------------------------
+S2
+
+enable 
+config t
+hostname S2
+
+vlan 10
+name DC1
+vlan 20
+name DC2
+exit
+
+int range fa0/10 -19
+switchport mode access
+switchport access vlan 10
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 20
+
+int f0/1 
+switchport mode trunk
+switchport trunk native vlan 999
+
+do wr
+-------------------------------------------------------
+R1
+
+enable 
+config t
+hostname R1
+
+int g0/0/1.100
+ encap dot1q 100
+ ip add 192.168.100.1 255.255.255.128
+int g0/0/1.200
+ encap dot1q 200
+ ip add 192.168.200.1 255.255.255.224
+int g0/0/1.777
+ encap dot1q 777 nat
+int g0/0/1
+no shut
+
+int g0/0/0
+ ip add 10.10.10.1 255.255.255.252 
+ no shut
+int s0/1/0
+ ip add 10.10.10.17 255.255.255.252
+ clock rate 4000000
+ no shut
+
+do wr 
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.100.0 0.0.0.127 area 0
+ network 192.168.200.0 0.0.0.31 area 0
+ network 10.10.10.16 0.0.0.3 area 0
+ network 10.10.10.0 0.0.0.3 area 0
+
+do wr
+
+int g0/0/1.100
+ ip helper-address 10.10.10.6  
+int g0/0/1.200
+ ip helper-address 10.10.10.6  
+ 
+----------------------------------------------------------- 
+MLS-S
+
+enable 
+config t
+hostname MLS-S
+
+vlan 10
+name DC1
+vlan 20
+name DC2
+exit
+
+int f0/1 
+switchport trunk encap dot1q
+switchport mode trunk
+switchport trunk native vlan 999
+
+ip routing
+
+int g0/1
+ no switchport
+ ip add 10.10.10.22 255.255.255.252
+ no shut
+
+int g0/2
+ no switchport
+ ip add 10.10.10.14 255.255.255.252
+ no shut
+
+int vlan 10 
+ ip add 192.168.10.1 255.255.255.240
+ no shut
+
+int vlan 20 
+ ip add 192.168.20.1 255.255.255.192
+ no shut
+
+do wr
+
+router ospf 5
+ router-id 5.5.5.5
+ network 192.168.10.0 0.0.0.15 area 0
+ network 192.168.20.0 0.0.0.63 area 0
+ network 10.10.10.12 0.0.0.3 area 0
+ network 10.10.10.20 0.0.0.3 area 0
+
+do wr
+
+int f0/2
+ no switchport
+ ip add 210.5.5.1 255.255.255.0
+ no shut 
+
+ip route 0.0.0.0 0.0.0.0 f0/2 
+
+do wr 
+
+router ospf 5 
+ default-information originate
+
+do wr 
+
+
+------------------------------------------------------
+R6
+
+enable
+config t
+hostname R6
+
+int g0/0/0
+ ip add 10.10.10.21 255.255.255.252
+ no shut
+
+int s0/1/0
+ ip add 10.10.10.18 255.255.255.252
+ no shut
+
+do wr
+
+router ospf 6
+ router-id 6.6.6.6
+ network 10.10.10.20 0.0.0.3 area 0
+ network 10.10.10.16 0.0.0.3 area 0
+
+do wr
+----------------------------------------------------------
+R2
+
+enable
+config t
+hostname R2
+
+int g0/0/0
+ ip add 10.10.10.2 255.255.255.252
+ no shut
+
+int g0/0/1
+ ip add 10.10.10.5 255.255.255.252
+ no shut
+
+do wr
+
+router ospf 2
+ router-id 2.2.2.2
+ network 10.10.10.0 0.0.0.3 area 0
+ network 10.10.10.4 0.0.0.3 area 0
+
+do wr
+------------------------------------------------------------
+R3
+
+enable
+config t
+hostname R3
+
+int g0/0/1
+ ip add 10.10.10.6 255.255.255.252
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.9 255.255.255.252
+ no shut
+
+do wr
+
+router ospf 3
+ router-id 3.3.3.3
+ network 10.10.10.8 0.0.0.3 area 0
+ network 10.10.10.4 0.0.0.3 area 0
+
+do wr
+
+ip dhcp excluded-add 192.168.100.1 192.168.100.4
+ip dhcp excluded-add 192.168.200.1 192.168.200.4
+
+ip dhcp pool GERENCIA
+ network 192.168.100.0 255.255.255.128
+ default-route 192.168.100.1
+ dns-server 192.168.10.10
+
+ip dhcp pool VENTAS
+ network 192.168.200.0 255.255.255.224
+ default-route 192.168.200.1
+ dns-server 192.168.10.10
+
+do wr
+------------------------------------------------------------
+R4
+
+enable
+config t
+hostname R4
+
+int g0/0/1
+ ip add 10.10.10.13 255.255.255.252
+ no shut
+
+int g0/0/0
+ ip add 10.10.10.10 255.255.255.252
+ no shut
+
+do wr
+
+router ospf 4
+ router-id 4.4.4.4
+ network 10.10.10.8 0.0.0.3 area 0
+ network 10.10.10.12 0.0.0.3 area 0
+
+do wr

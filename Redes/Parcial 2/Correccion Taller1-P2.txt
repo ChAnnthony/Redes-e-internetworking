@@ -1,0 +1,156 @@
+Comando de verificacion
+
+show vlan brief  "Puertos de acceso"
+shiw int trunk  "Muestra "
+-------------------------------------------------------
+S2
+enable
+config t
+host name S2
+
+vlan 10
+name GERENCIA
+vlan 100
+name VENTAS
+vlan 1000
+name MARKETING
+exit
+
+int range fa0/10 -15
+switchport mode access
+switchport access vlan 10
+
+int range fa0/16 -20
+switchport mode access
+switchport access vlan 100
+
+int range fa0/21 -24
+switchport mode access
+switchport access vlan 1000
+
+interface g0/1
+switchport mode trunk
+switchport trunk native vlan 77
+do wr
+
+-----------------------------------------------------------
+S1
+
+enable
+config t
+host name S1
+
+vlan 10
+name GERENCIA
+vlan 100
+name VENTAS
+vlan 1000
+name MARKETING
+exit
+
+interface range g0/1, f0/5
+switchport mode trunk
+switchport trunk native vlan 77
+do wr
+
+-------------------------------------------------------
+R1
+
+enable
+config t
+hostname R1
+
+int g0/0/0
+ description R1->R2
+ip add 192.168.34.97 255.255.255.252
+
+int g0/0/1.10
+description GW VLAN10
+encapsulation dot1q 10
+ip add 192.168.34.1 255.255.255.192
+
+int g0/0/1.100
+description GW VLAN100
+encapsulation dot1q 100
+ip add 192.168.0.1 255.255.224.0
+
+int g0/0/1.1000
+description GW VLAN1000
+encapsulation dot1q 1000
+ip add 192.168.32.1 255.255.254.0
+
+int g0/0/1.77
+description NATIVA 77
+encapsulation dot1q 77 native
+
+int g0/0/1
+no shut
+
+ip dhcp excluded-add 192.168.34.1 192.168.34.7
+ip dhcp excluded-add 192.168.0.1 192.168.0.7
+ip dhcp excluded-add 192.168.32.1 192.168.32.7
+
+ip dhcp pool GERENCIA
+network 192.168.34.0 255.255.255.192
+default-router 192.168.34.1
+dns-server 192.168.34.94
+
+ip dhcp pool Ventas
+network 192.168.0.0 255.255.254.0
+default-router 192.168.0.1
+dns-server 192.168.34.94
+
+ip dhcp pool MARKETING
+network 192.168.32.0 255.255.254.0
+default-router 192.168.32.1
+dns-server 192.168.34.94
+
+ip route 192.168.34.64 255.255.255.224 g0/0/0
+
+do wr
+-------------------------------------------------------
+R2
+
+enable
+config t
+hostname R2
+
+int g0/0/0
+ description R2->R1
+ip add 192.168.34.98 255.255.255.252
+no shut
+
+int g0/0/1
+ description R2->R3
+ip add 192.168.34.101 255.255.255.252
+no shut
+
+ip route 192.168.34.64 255.255.255.224 g0/0/1
+ip route 192.168.34.0 255.255.255.192 g0/0/0
+ip route 192.168.0.0 255.255.224.0 g0/0/0
+ip route 192.168.32.0 255.255.254.0 g0/0/0
+
+do wr
+
+-------------------------------------------------------
+R3
+
+enable
+config t
+hostname R3
+
+int g0/0/0
+ description GW DC
+ip add 192.168.34.65 255.255.255.224
+no shut
+
+int g0/0/1
+ description R3->R2
+ip add 192.168.34.102 255.255.255.252
+no shut
+
+ip route 192.168.34.0 255.255.255.192 g0/0/1
+ip route 192.168.0.0 255.255.224.0 g0/0/1
+ip route 192.168.32.0 255.255.254.0 g0/0/1
+
+do wr

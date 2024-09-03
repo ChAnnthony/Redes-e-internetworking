@@ -1,0 +1,119 @@
+Taller 3Parcial-Chavez, Tamayo, Vinueza
+
+-----S1----
+enable 
+config t
+hostname S1-CTV
+
+vlan 10
+ name GERENCIA
+vlan 20
+ name VENTAS
+exit
+
+interface range f0/5 -10
+switchport mode access
+switchport access vlan 10
+
+interface range f0/11 -15
+switchport mode access
+switchport access vlan 20
+
+int g0/1
+switchport mode trunk
+switchport trunk native vlan 999
+do wr
+
+-----R1---
+enable
+config t
+hostname R1-CTV
+
+int g0/0/1.10
+ encapsulation dot1q 10
+ip add 192.168.0.129 255.255.255.192
+
+int g0/0/1.20
+ encapsulation dot1q 20
+ip add 192.168.0.1 255.255.255.128
+
+int g0/0/1.999
+ encapsulation dot1q 999 native
+int g0/0/1
+no shut
+
+int s0/1/0
+ description R1->R2
+ ip add 192.168.0.209 255.255.255.252
+ clock rate 4000000
+ no shut
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.0.128 0.0.0.63 area 0
+ network 192.168.0.0 0.0.0.127 area 0
+ network 192.168.0.208 0.0.0.3 area 0
+do wr
+
+int g0/0/1.10
+ ip helper-address 192.168.0.210
+int g0/0/1.20
+ ip helper-address 192.168.0.210
+do wr 
+R2-----
+enable
+config t
+hostname R2-CTV
+
+int s0/1/0
+ description R2->R1
+ ip add 192.168.0.210 255.255.255.252
+ no shut
+
+int g0/0/0
+ description R2->R3
+ ip add 192.168.0.213 255.255.255.252
+ no shut
+do wr
+router ospf 2
+ router-id 2.2.2.2
+ network 192.168.0.208 0.0.0.3 area 0
+ network 192.168.0.212 0.0.0.3 area 0
+do wr
+
+
+ip dhcp excluded-add 192.168.0.129 192.168.0.134
+ip dhcp excluded-add 192.168.0.1 192.168.0.5
+
+ip dhcp pool V10
+ network 192.168.0.128 255.255.255.192
+ default-router 192.168.0.129
+ dns-server 192.168.0.200
+
+ip dhcp pool V20
+ network 192.168.0.0 255.255.255.128
+ default-router 192.168.0.1
+ dns-server 192.168.0.200
+do wr
+
+---R3---
+enable
+config t
+hostname R3-CTV
+
+int g0/0/0
+ description R3->R2
+ ip add 192.168.0.214 255.255.255.252
+ no shut
+
+int g0/0/1
+ description R3->SERVER
+ ip add 192.168.0.193 255.255.255.240
+ no shut
+do wr
+
+router ospf 3
+ router-id 3.3.3.3
+ network 192.168.0.212 0.0.0.3 area 0
+ network 192.168.0.192 0.0.0.15 area 0
+do wr

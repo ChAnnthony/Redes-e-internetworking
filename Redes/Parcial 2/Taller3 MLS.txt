@@ -1,0 +1,174 @@
+S2
+enable
+conf t 
+hostname S2
+
+vlan 10
+name GERENCIA
+
+vlan 20
+name FINANCIERO
+
+exit
+
+int range fa0/10 -19
+switchport mode access
+switchport access vlan 10
+
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 20
+
+in g0/2
+switchport mode trunk
+switchport trunk native vlan 700
+
+do wr
+
+------------------------------------------------
+S1
+enable
+conf t 
+hostname S1
+
+vlan 10
+name GERENCIA
+
+vlan 20
+name FINANCIERO
+
+exit
+
+int range fa0/10 -19
+switchport mode access
+switchport access vlan 10
+
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 20
+
+in g0/1, g0/2
+switchport mode trunk
+switchport trunk native vlan 700
+
+do wr
+
+------------------------------------------------
+R1
+enable
+conf t 
+hostname R1-ROAS
+
+int g0/0/1.10
+encap dot1q 10
+description GW-VLAN10
+ip add172.16.2.129 255.255.255.192
+
+int g0/0/1.20
+encap dot1q 20
+description GW-VLAN20
+ip add172.16.2.1 255.255.255.128
+
+int g0/0/1.700
+encap dot1q 700 native
+description GW-VLAN
+
+int g0/0/1
+no shut
+
+
+
+
+int s0/1/0
+description R->ISP
+ip add 5.5.5.1 255.255.255.252
+no shut
+
+
+
+ip dhcp excluded-add 172.16.2.129 172.16.2.131
+ip dhcp excluded-add 172.16.2.1 172.16.2.3
+
+ip dhcp pool GERENCIA
+network 172.16.2.128 255.255.255.192
+default-router 172.16.2.129
+dns-server 172.16.2.191
+
+ip dhcp pool FINANCIERO
+network 172.16.2.0 255.255.255.128
+default-router 172.16.2.1
+dns-server 172.16.2.191
+
+
+ip route 172.16.0.0 255.255.254.0 s0/1/0
+ip route 172.16.2.192 255.255.255.224 s0/1/0
+
+do wr
+
+------------------------------------------------
+R2
+enable
+conf t 
+hostname R2-ISP
+
+int s0/1/0
+description ISP->R1
+ip add 5.5.5.2 255.255.255.252
+clock rate 4000000
+no shut
+
+int g0/0/1
+description ISP->MLS
+ip add 7.7.7.1 255.255.255.252
+no shut
+
+ip route 172.16.2.128 255.255.255.192 s0/1/0
+ip route 172.16.2.0 255.255.255.128 s0/1/0
+ip route 172.16.0.0 255.255.254.0 g0/0/1
+ip route 172.16.2.192 255.255.255.224 g0/0/1
+
+do wr
+
+------------------------------------------------
+MLS
+enable
+conf t 
+hostname MLS
+
+vlan 100
+name VENTAS
+
+vlan 200
+name TI
+
+exit
+
+int range fa0/10 -19
+switchport mode access
+switchport access vlan 100
+
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 200
+
+ip routing
+
+int g0/1
+description PUERTO ENRUTADO->ISP
+no switchport 
+ip add 7.7.7.2 255.255.255.252
+no shut
+
+int vlan 100
+description SVI VLAN100
+ip add 172.16.0.1 255.255.254.0
+no shut
+int vlan 200
+description SVI VLAN200
+ip add 172.16.2.193 255.255.255.224
+no shut
+
+ip route 172.16.2.128 255.255.255.192 g0/1
+ip route 172.16.2.0 255.255.255.128 g0/1
+
+do wr

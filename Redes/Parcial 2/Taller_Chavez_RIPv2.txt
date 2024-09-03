@@ -1,0 +1,145 @@
+S1
+
+enable 
+config t 
+hostname S1
+
+vlan 100
+name DIRECCION 
+vlan 200 
+name CORDINACION
+exit
+
+int range fa0/10 -19
+switchport mode access
+switchport access vlan 100
+int range fa0/20 -24
+switchport mode access
+switchport access vlan 200
+
+int g0/1
+switchport mode trunk
+switchport trunk native vlan 999
+do wr
+
+-------------------------------------------------------------
+R1
+
+enable 
+config t
+hostname R1
+
+int g0/0/1.100
+encap dot1q 100
+ip add 192.168.100.1 255.255.255.128
+int g0/0/1.200
+encap dot1q 200
+ip add 192.168.200.1 255.255.255.224
+int g0/0/1.999
+encap dot1q 999 native
+int g0/0/1
+no shut
+
+int g0/0/0 
+ip add 10.10.10.1 255.255.255.252
+no shut
+
+!Activacion RIP
+router rip
+version 2 
+network 192.168.100.0
+network 192.168.200.0
+network 10.10.10.0
+no auto-summary
+
+do wr
+
+int g0/0/1.100
+ip helper-address 10.10.10.2
+int g0/0/1.200
+ip helper-address 10.10.10.2
+
+do wr
+------------------------------------------------------------------
+R2
+
+enable 
+config t
+hostname R2
+
+int g0/0/1
+ip add 10.10.10.5 255.255.255.252
+no shut
+
+int g0/0/0 
+ip add 10.10.10.2 255.255.255.252
+no shut
+
+!Activacion RIP
+router rip
+version 2 
+network 10.10.10.4
+network 10.10.10.0
+no auto-summary
+
+ip dhcp excluded-add 192.168.100.1 192.168.100.3
+ip dhcp excluded-add 192.168.200.1 192.168.200.3
+
+ip dhcp pool V100
+network 192.168.100.0 255.255.255.128
+default-router 192.168.100.1
+dns-server 172.16.10.10
+ip dhcp pool V200
+network 192.168.200.0 255.255.255.224
+default-router 192.168.200.1
+dns-server 172.16.10.10
+
+do wr
+
+-----------------------------------------------------------------
+R3
+
+enable 
+config t
+hostname R3
+
+int g0/0/1
+ip add 10.10.10.6 255.255.255.252
+no shut
+
+int g0/0/0 
+ip add 10.10.0.9 255.255.255.252
+no shut
+
+!Activacion RIP
+router rip
+version 2 
+network 10.10.10.4
+network 10.10.10.8
+no auto-summary
+
+do wr
+-------------------------------------------------------------------
+R4
+enable 
+config t
+hostname R4
+
+int g0/0/1
+ip add 172.16.10.1 255.255.255.0
+no shut
+
+int g0/0/0 
+ip add 10.10.0.10 255.255.255.252
+no shut
+
+!Activacion RIP
+router rip
+version 2 
+network 172.16.10.0
+network 10.10.10.8
+no auto-summary
+
+do wr
+
+do wr
